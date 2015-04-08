@@ -32,10 +32,10 @@ function inventoryAdminPrepareHead()
     $h = 0;
     $head = array();
 
-    $head[$h][0] = dol_buildpath("/inventory/admin/inventory_setup.php", 1);
+    /*$head[$h][0] = dol_buildpath("/inventory/admin/inventory_setup.php", 1);
     $head[$h][1] = $langs->trans("Parameters");
     $head[$h][2] = 'settings';
-    $h++;
+    $h++;*/
     $head[$h][0] = dol_buildpath("/inventory/admin/inventory_about.php", 1);
     $head[$h][1] = $langs->trans("About");
     $head[$h][2] = 'about';
@@ -52,4 +52,33 @@ function inventoryAdminPrepareHead()
     complete_head_from_modules($conf, $langs, $object, $head, $h, 'inventory');
 
     return $head;
+}
+
+function inventoryPrepareHead(&$inventory, $title='Inventaire', $get='')
+{
+	return array(
+		array(DOL_URL_ROOT.'/custom/inventory/inventory.php?id='.$inventory->getId().$get, $title,'inventaire')
+	);
+}
+
+function inventorySelectProducts(&$PDOdb, &$inventory)
+{
+	$except_product_id = array();
+	
+	foreach ($inventory->TInventorydet as $TInventorydet)
+	{
+		$except_product_id[] = $TInventorydet->fk_product;
+	}
+	
+	$sql = 'SELECT rowid, ref, label FROM '.MAIN_DB_PREFIX.'product WHERE fk_product_type = 0 AND rowid NOT IN ('.implode(',', $except_product_id).')';
+	$PDOdb->Execute($sql);
+	
+	$select_html = '<select style="min-width:150px;background:#FFF;font-size:12px;" name="fk_product">';
+	while ($PDOdb->Get_line()) 
+	{
+		$select_html.= '<option value="'.$PDOdb->Get_field('rowid').'">'.$PDOdb->Get_field('ref').' - '.$PDOdb->Get_field('label').'</option>';
+	}
+	$select_html.= '</select>';
+
+	return $select_html;
 }

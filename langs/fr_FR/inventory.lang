@@ -1,7 +1,26 @@
-Module104420Name = inventory
-Module104420Desc = inventory Descripion
+Module104420Name = Inventaire
+Module104420Desc = Permet de faire l'inventaire des différents entrepôts
 
 ATMAbout = Ce module a été développé par <a href="http://www.atm-consulting.fr" target="_blank">ATM Consulting</a><br>Vous pouvez retrouver la documentation sur notre <a href="http://wiki.atm-consulting.fr/index.php/Accueil" target="_blank">wiki</a><br><br>Pour toute question technique ou retour, contactez-nous sur <a href="mailto:support@atm-consulting.fr">support@atm-consulting.fr</a><br><br>Pour toute question commerciale, contactez-nous sur <a href="mailto:contact@atm-consulting.fr">contact@atm-consulting.fr</a> ou au +33 9 77 19 50 70<br><br>Retrouvez nos autres modules sur <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=atm&submit_search=Rechercher" target="_blank">Dolistore</a>
 
 inventorySetup = Configuration du module inventory
 inventoryAbout = A propos du module inventory
+
+inventoryCreatePermission=Créer un nouvel inventaire
+inventoryReadPermission=Consulter les inventaires
+inventoryWritePermission=Modifier les inventaires
+inventoryValidatePermission=Valider les inventaires
+
+inventoryTitle=Inventaire
+inventoryListTitle=Liste des inventaires
+inventoryListEmpty=Il n'y a aucun inventaire en cours
+
+inventoryCreate=Créer/supprimer un nouvel inventaire
+inventoryEdit=Edition d'un inventaire
+inventoryValidate=Validé
+inventoryDraft=En cours
+inventorySelectWarehouse=Choix de l'entrepôt
+inventoryConfirmCreate=Créer un inventaire
+inventoryOfWarehouse=Inventaire de l'entrepôt : %s
+inventoryErrorQtyAdd=Erreur : au moins une des quantités saisie est inférieure à 0
+inventoryMvtStock=<a href="%s">Inventaire n°%s</a>
