@@ -25,6 +25,7 @@ class TInventory extends TObjetStd
 	
 	function save($PDOdb)
 	{
+		//si on valide l'inventaire on sauvegarde le stock à cette instant
 		if ($this->status)
 		{
 			 $this->regulate();
@@ -52,13 +53,6 @@ class TInventory extends TObjetStd
 				$product = new Product($db);
 				$product->fetch($this->TInventorydet[$k]->fk_product);
 				
-				//si on valide l'inventaire on sauvegarde le stock à cette instant
-				if ($this->status) 
-				{
-					$res = $product->load_stock();
-					$this->TInventorydet[$k]->qty_stock =  $res > 0 ? $product->stock_warehouse[$this->fk_warehouse]->real : 0;
-				}
-				
 				$this->TInventorydet[$k]->qty_view += $qty;
 			}	
 		}
@@ -75,9 +69,12 @@ class TInventory extends TObjetStd
 			$product = new Product($db);
 			$product->fetch($TInventorydet->fk_product);
 			
+			$product->load_stock();
+			$TInventorydet->qty_stock = $product->stock_warehouse[$this->fk_warehouse]->real;
+			
 			if ($TInventorydet->qty_view != $TInventorydet->qty_stock)
 			{
-				$TInventorydet->qty_regulated = $TInventorydet->qty_stock - $TInventorydet->qty_view;
+				$TInventorydet->qty_regulated = $TInventorydet->qty_view - $TInventorydet->qty_stock;
 				$nbpiece = abs($TInventorydet->qty_regulated);
 				$movement = (int) ($TInventorydet->qty_view < $TInventorydet->qty_stock); // 0 = add ; 1 = remove
 				

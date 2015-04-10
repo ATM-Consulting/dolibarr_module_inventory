@@ -92,11 +92,6 @@ function _action()
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
 			
-			if (isset($_REQUEST['saveAndValidate']))
-			{
-				$inventory->status = 1;
-			}
-			
 			$inventory->set_values($_REQUEST);
 			
 			if ($inventory->errors)
@@ -109,6 +104,19 @@ function _action()
 				$inventory->save($PDOdb);
 				header('Location: '.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=view', 2));
 			}
+			
+			break;
+			
+		case 'regulate':
+			$PDOdb = new TPDOdb;
+			$id = __get('id', 0, 'int');
+			
+			$inventory = new TInventory;
+			$inventory->load($PDOdb, $id);
+			$inventory->status = 1;
+			$inventory->save($PDOdb);
+			
+			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'view');
 			
 			break;
 			
@@ -291,8 +299,8 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 		,array(
 			'inventory'=>array(
 				'id'=> $inventory->getId()
-				,'date_crea' => $inventory->date_crea
-				,'date_maj' => $inventory->date_maj
+				,'date_cre' => $inventory->get_date('date_cre', 'd/m/Y')
+				,'date_maj' => $inventory->get_date('date_maj', 'd/m/Y H:i')
 				,'fk_warehouse' => $inventory->fk_warehouse
 				,'status' => $inventory->status
 				,'entity' => $inventory->entity
@@ -336,7 +344,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, $form)
 		}
 
 		$TInventory[]=array(
-			'produit'=>'<a href="'.dol_buildpath('product/card.php?id='.$product->id, 2).'">'.img_picto('', 'product_object.png').$product->ref.' - '.$product->label.'</a>'
+			'produit' => $product->getNomUrl(1)
 			,'qty' => $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
 			,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
 			,'qty_stock' => $stock
