@@ -15,7 +15,8 @@ inventoryTitle=Inventaire
 inventoryListTitle=Liste des inventaires
 inventoryListEmpty=Il n'y a aucun inventaire en cours
 
-inventoryCreate=Créer/supprimer un nouvel inventaire
+inventoryCreateDelete=Créer/supprimer un nouvel inventaire
+inventoryCreate=Créer un nouvel inventaire
 inventoryEdit=Edition d'un inventaire
 inventoryValidate=Validé
 inventoryDraft=En cours

@@ -39,6 +39,7 @@
 	[onshow;block=begin;when [view.is_already_validate]!='1']
 		<div class="tabsAction" style="height:30px;">
 			[onshow;block=begin;when [view.mode]=='view']
+				<a href="[view.url]?id=[inventory.id]&action=printDoc" class="butAction">Imprimer</a>
 				<a href="[view.url]?id=[inventory.id]&action=edit" class="butAction">Modifier</a>
 				[onshow;block=begin;when [view.can_validate]=='1']
 					<a href="[view.url]?id=[inventory.id]&action=regulate" onclick="if (!confirm('Confirmez-vous la régulation ?')) return false;" class="butAction">Réguler le stock</a>

@@ -174,6 +174,16 @@ function _action()
 			
 			_liste($user, $db, $conf, $langs);
 			
+		case 'printDoc':
+			$PDOdb = new TPDOdb;
+			$id = __get('id', 0, 'int');
+			
+			$inventory = new TInventory;
+			$inventory->load($PDOdb, $id);
+			
+			generateODT($PDOdb, $db, $conf, $langs, $inventory);
+			break;
+			
 		default:
 			//Rien
 			break;
@@ -209,7 +219,7 @@ function _liste(&$user, &$db, &$conf, &$langs)
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
-			'rowid'=>'<a href="'.DOL_URL_ROOT.'/custom/inventory/inventory.php?id=@val@&action=edit">'.img_picto('','object_list.png','',0).' '.$langs->trans('inventoryTitle').' @val@</a>'
+			'rowid'=>'<a href="'.DOL_URL_ROOT.'/custom/inventory/inventory.php?id=@val@&action=view">'.img_picto('','object_list.png','',0).' '.$langs->trans('inventoryTitle').' @val@</a>'
 			,'fk_warehouse'=>'<a href="'.DOL_URL_ROOT.'/product/stock/card.php?id=@val@">'.img_picto('','object_stock.png','',0).' @label@</a>'
 		)
 		,'translate'=>array()
@@ -353,4 +363,63 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, $form)
 		);
 	}
 	
+}
+
+function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory) 
+{
+	foreach($inventory as $k => $v) {
+		print $k."<br />";
+	}
+	
+	$TBS=new TTemplateTBS();
+
+	$TInventoryPrint = array(); // Tableau envoyé à la fonction render contenant les informations concernant l'inventaire
+	
+	foreach($inventory->TInventorydet as $k => $v) 
+	{
+		$prod = new Product($db);
+		$prod->fetch($v->fk_product);
+		//$prod->fetch_optionals($prod->id);
+		
+		$TInventoryPrint[] = array(
+			'product' => $prod->ref.' - '.$prod->label
+			, 'qty_view' => $v->qty_view
+		);
+	}
+
+	$warehouse = new Entrepot($db);
+	$warehouse->fetch($inventory->fk_warehouse);
+	
+	$dirName = 'INVENTORY'.$inventory->getId().'('.date("d_m_Y").')';
+	$dir = DOL_DATA_ROOT.'/inventory/'.$dirName.'/';
+	
+	@mkdir($dir, 0777, true);
+	
+	$template = "templateINVENTORY.odt";
+	//$template = "templateOF.doc";
+
+	$TBS->render(dol_buildpath('inventory/exempleTemplate/'.$template)
+		,array(
+			'TInventoryPrint'=>$TInventoryPrint
+		)
+		,array(
+			'date_cre'=>$inventory->get_date('date_cre', 'd/m/Y')
+			,'date_maj'=>$inventory->get_date('date_maj', 'd/m/Y H:i')
+			,'numero'=>$inventory->getId()
+			,'warehouse'=>$warehouse->libelle
+			,'status'=>($inventory->status ? $langs->trans('inventoryValidate') : $langs->trans('inventoryDraft'))
+			,'logo'=>DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO
+		)
+		,array()
+		,array(
+			'outFile'=>$dir.$inventory->getId().".odt"
+			,"convertToPDF"=>true
+			//'outFile'=>$dir.$assetOf->numero.".doc"
+		)
+		
+	);	
+	
+	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=inventory&entity=".$conf->entity."&file=".$dirName."/".$inventory->getId().".pdf");
+	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
+
 }
