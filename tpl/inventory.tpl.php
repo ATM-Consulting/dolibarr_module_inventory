@@ -56,6 +56,7 @@
 	[onshow;block=begin;when [view.is_already_validate]=='1']
 		<div class="tabsAction">
 			[onshow;block=begin;when [view.can_validate]=='1']
+				<a href="[view.url]?id=[inventory.id]&action=printDoc" class="butAction">Imprimer</a>
 				<!-- <a onclick="if (!confirm('Confirmez-vous la suppression ?')) return false;" href="[view.url]?id=[inventory.id]&action=delete" class="butActionDelete">Supprimer</a> -->
 				<a href="#" title="Cet inventaire est validé" class="butActionRefused">Supprimer</a>
 			[onshow;block=end]
