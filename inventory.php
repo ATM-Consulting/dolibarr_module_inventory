@@ -401,11 +401,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, $form)
 }
 
 function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory) 
-{
-	foreach($inventory as $k => $v) {
-		print $k."<br />";
-	}
-	
+{	
 	$TBS=new TTemplateTBS();
 
 	$TInventoryPrint = array(); // Tableau envoyé à la fonction render contenant les informations concernant l'inventaire
@@ -449,6 +445,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 		,array(
 			'outFile'=>$dir.$inventory->getId().".odt"
 			,"convertToPDF"=>true
+			,'charset'=>OPENTBS_ALREADY_UTF8
 			//'outFile'=>$dir.$assetOf->numero.".doc"
 		)
 		
