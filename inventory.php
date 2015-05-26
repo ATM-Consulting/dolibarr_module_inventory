@@ -122,19 +122,54 @@ function _action()
 			
 		case 'add_line':
 			if (!$user->rights->inventory->write) accessforbidden();
+			
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
 			
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
-				
-			$fk_product = __get('fk_product', 0, 'int');
+			
+			$type = (!empty($conf->use_javascript_ajax) && !empty($conf->global->PRODUIT_USE_SEARCH_TO_SELECT) ? 'string' : 'int');
+			
+			$fk_product = __get('fk_product', 0, $type);
 			
 			if ($fk_product)
 			{
-				$k = $inventory->addChild($PDOdb, 'TInventorydet');
-				$inventory->TInventorydet[$k]->fk_inventory = $id;
-				$inventory->TInventorydet[$k]->fk_product = $fk_product;
+				
+			
+				if (!empty($conf->use_javascript_ajax) && !empty($conf->global->PRODUIT_USE_SEARCH_TO_SELECT))
+				{
+					$product = new Product($db);
+					$product->fetch(null, $fk_product);				
+					
+					//Check product not already exists
+					$alreadyExists = false;
+					foreach ($inventory->TInventorydet as $TInventory)
+					{
+						if ($TInventory->fk_product == $product->id)
+						{
+							$alreadyExists = true;
+							break;
+						}
+					}
+					
+					if (!$alreadyExists)
+					{
+						$k = $inventory->addChild($PDOdb, 'TInventorydet');
+						$inventory->TInventorydet[$k]->fk_inventory = $id;
+						$inventory->TInventorydet[$k]->fk_product = $product->id;
+					}
+					else
+					{
+						setEventMessage($langs->trans('inventoryWarningProductAlreadyExists'), 'warnings');
+					}
+				}
+				else
+				{
+					$k = $inventory->addChild($PDOdb, 'TInventorydet');
+					$inventory->TInventorydet[$k]->fk_inventory = $id;
+					$inventory->TInventorydet[$k]->fk_product = $fk_product;
+				}
 				
 				$inventory->save($PDOdb);
 			}
@@ -354,7 +389,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, $form)
 		}
 
 		$TInventory[]=array(
-			'produit' => $product->getNomUrl(1)
+			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
 			,'qty' => $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
 			,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
 			,'qty_stock' => $stock

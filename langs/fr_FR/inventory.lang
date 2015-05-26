@@ -25,3 +25,4 @@ inventoryConfirmCreate=Créer un inventaire
 inventoryOfWarehouse=Inventaire de l'entrepôt : %s
 inventoryErrorQtyAdd=Erreur : au moins une des quantités saisie est inférieure à 0
 inventoryMvtStock=<a href="%s">Inventaire n°%s</a>
+inventoryWarningProductAlreadyExists=Le produit existe déjà dans la liste
