@@ -349,6 +349,9 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 				,'fk_warehouse' => $inventory->fk_warehouse
 				,'status' => $inventory->status
 				,'entity' => $inventory->entity
+				,'amount' => price( round($inventory->amount,2) )
+				,'amount_actual'=>$inventory->amount_actual
+				
 			)
 			,'view'=>array(
 				'mode' => $mode
@@ -373,6 +376,9 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, $form)
 {
+	
+	$inventory->amount_actual = 0;
+	
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
 	{
 		$product = new Product($db);
@@ -388,6 +394,9 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, $form)
 			$stock = $TInventorydet->qty_stock;
 		}
 
+		$pmp_actual = $product->pmp * $stock;
+		$inventory->amount_actual+=$pmp_actual;
+
 		$TInventory[]=array(
 			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
 			,'qty' => $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
@@ -395,6 +404,8 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, $form)
 			,'qty_stock' => $stock
 			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
 			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 2).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
+			,'pmp'=>price(round($TInventorydet->pmp * $TInventorydet->qty_view,2))
+			,'pmp_actual'=>price(round($pmp_actual,2))
 		);
 	}
 	
