@@ -350,7 +350,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 				,'status' => $inventory->status
 				,'entity' => $inventory->entity
 				,'amount' => price( round($inventory->amount,2) )
-				,'amount_actual'=>$inventory->amount_actual
+				,'amount_actual'=>price (round($inventory->amount_actual,2))
 				
 			)
 			,'view'=>array(
