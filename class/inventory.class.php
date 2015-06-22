@@ -20,9 +20,21 @@ class TInventory extends TObjetStd
 		$this->status = 0;
 		$this->entity = $conf->entity;
 		$this->errors = array();
+		$this->amount = 0;
 		
 	}
-	
+	function load(&$PDOdb, $id) {
+		
+		$res = parent::load($PDOdb, $id);
+		
+		$this->amount = 0;
+		foreach($this->TInventorydet as &$det){
+			$this->amount+=$det->qty_view * $det->pmp;
+		}
+		
+		return $res;
+		
+	}
 	function save($PDOdb)
 	{
 		//si on valide l'inventaire on sauvegarde le stock à cette instant
@@ -53,6 +65,7 @@ class TInventory extends TObjetStd
 				$product = new Product($db);
 				$product->fetch($this->TInventorydet[$k]->fk_product);
 				
+				$this->TInventorydet[$k]->pmp = $product->pmp;
 				$this->TInventorydet[$k]->qty_view += $qty;
 			}	
 		}
@@ -97,7 +110,7 @@ class TInventorydet extends TObjetStd
 		$this->set_table(MAIN_DB_PREFIX.'inventorydet');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_inventory,fk_product,entity', 'type=entier;');
-		$this->add_champs('qty_view,qty_stock,qty_regulated', 'type=float;');
+		$this->add_champs('qty_view,qty_stock,qty_regulated,pmp', 'type=float;');
 		
 	    $this->start();
 		
