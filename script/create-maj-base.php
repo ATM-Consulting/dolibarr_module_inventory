@@ -2,13 +2,20 @@
 /*
  * Script créant et vérifiant que les champs requis s'ajoutent bien
  */
-define('INC_FROM_CRON_SCRIPT', true);
+ 
+if(!defined('INC_FROM_DOLIBARR')) 
+{
+    define('INC_FROM_CRON_SCRIPT', true);
+    require('../config.php');
+    $PDOdb=new TPDOdb;
+    $PDOdb->debug=true;
+}
+else
+{
+    $PDOdb=new TPDOdb;
+}
 
-require('../config.php');
-require('../class/inventory.class.php');
-
-$PDOdb=new TPDOdb;
-$PDOdb->db->debug=true;
+dol_include_once('/inventory/class/inventory.class.php');
 
 $o=new TInventory();
 $o->init_db_by_vars($PDOdb);

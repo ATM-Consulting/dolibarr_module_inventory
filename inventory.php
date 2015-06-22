@@ -449,7 +449,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 			,'date_maj'=>$inventory->get_date('date_maj', 'd/m/Y H:i')
 			,'numero'=>$inventory->getId()
 			,'warehouse'=>$warehouse->libelle
-			,'status'=>($inventory->status ? $langs->transnoentities('inventoryValidate') : $langs->transnoentities('inventoryDraft'))
+			,'status'=>($inventory->status ? $langs->transnoentitiesnoconv('inventoryValidate') : $langs->transnoentitiesnoconv('inventoryDraft'))
 			,'logo'=>DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO
 		)
 		,array()

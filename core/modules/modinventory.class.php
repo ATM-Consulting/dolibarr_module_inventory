@@ -298,9 +298,9 @@ class modinventory extends DolibarrModules
 	function init($options='')
 	{
 		$sql = array();
-		
-		$url =dol_buildpath("/custom/inventory/script/create-maj-base.php",2);
-		file_get_contents($url);
+		define('INC_FROM_DOLIBARR', true);
+		dol_include_once('/inventory/config.php');
+		dol_include_once("/inventory/script/create-maj-base.php");
 		
 		return $this->_init($sql, $options);
 	}
