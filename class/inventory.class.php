@@ -90,8 +90,8 @@ class TInventory extends TObjetStd
 				$TInventorydet->qty_regulated = $TInventorydet->qty_view - $TInventorydet->qty_stock;
 				$nbpiece = abs($TInventorydet->qty_regulated);
 				$movement = (int) ($TInventorydet->qty_view < $TInventorydet->qty_stock); // 0 = add ; 1 = remove
-				
-				$href = DOL_URL_ROOT.'/custom/inventory/inventory.php?id='.$this->getId().'&action=view';
+						
+				$href = dol_buildpath('/inventory/inventory.php?id='.$this->getId().'&action=view', 2);
 				
 				$product->correct_stock($user, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
 			}

@@ -36,7 +36,7 @@ function inventoryAdminPrepareHead()
     $head[$h][1] = $langs->trans("Parameters");
     $head[$h][2] = 'settings';
     $h++;*/
-    $head[$h][0] = dol_buildpath("/inventory/admin/inventory_about.php", 1);
+    $head[$h][0] = dol_buildpath("/inventory/admin/inventory_about.php", 2);
     $head[$h][1] = $langs->trans("About");
     $head[$h][2] = 'about';
     $h++;
@@ -57,7 +57,7 @@ function inventoryAdminPrepareHead()
 function inventoryPrepareHead(&$inventory, $title='Inventaire', $get='')
 {
 	return array(
-		array(DOL_URL_ROOT.'/custom/inventory/inventory.php?id='.$inventory->getId().$get, $title,'inventaire')
+		array(dol_buildpath('/inventory/inventory.php?id='.$inventory->getId().$get, 2), $title,'inventaire')
 	);
 }
 

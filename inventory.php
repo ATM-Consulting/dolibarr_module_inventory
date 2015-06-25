@@ -207,7 +207,9 @@ function _action()
 			
 			$inventory->delete($PDOdb);
 			
-			_liste($user, $db, $conf, $langs);
+			header('Location: '.dol_buildpath('/inventory/inventory.php', 2));
+			exit;
+			//_liste($user, $db, $conf, $langs);
 			
 		case 'printDoc':
 			$PDOdb = new TPDOdb;
@@ -254,7 +256,7 @@ function _liste(&$user, &$db, &$conf, &$langs)
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
-			'rowid'=>'<a href="'.DOL_URL_ROOT.'/custom/inventory/inventory.php?id=@val@&action=view">'.img_picto('','object_list.png','',0).' '.$langs->trans('inventoryTitle').' @val@</a>'
+			'rowid'=>'<a href="'.dol_buildpath('/inventory/inventory.php?id=@val@&action=view', 2).'">'.img_picto('','object_list.png','',0).' '.$langs->trans('inventoryTitle').' @val@</a>'
 			,'fk_warehouse'=>'<a href="'.DOL_URL_ROOT.'/product/stock/card.php?id=@val@">'.img_picto('','object_stock.png','',0).' @label@</a>'
 		)
 		,'translate'=>array()
@@ -355,7 +357,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 			)
 			,'view'=>array(
 				'mode' => $mode
-				,'url' => dol_buildpath('inventory/inventory.php', 2)
+				,'url' => dol_buildpath('/inventory/inventory.php', 2)
 				,'can_validate' => (int) $user->rights->inventory->validate
 				,'is_already_validate' => (int) $inventory->status
 			)
