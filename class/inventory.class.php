@@ -23,9 +23,12 @@ class TInventory extends TObjetStd
 		$this->amount = 0;
 		
 	}
-	function load(&$PDOdb, $id) {
-		
+	
+	function load(&$PDOdb, $id) 
+	{
 		$res = parent::load($PDOdb, $id);
+		
+		usort($this->TInventorydet, array('TInventory', 'customSort'));
 		
 		$this->amount = 0;
 		foreach($this->TInventorydet as &$det){
@@ -33,8 +36,27 @@ class TInventory extends TObjetStd
 		}
 		
 		return $res;
-		
 	}
+	
+	
+	function customSort(&$objA, &$objB)
+	{
+		global $db;
+		
+		$prodA = new Product($db);
+		$prodA->fetch($objA->fk_product);
+		
+		$prodB = new Product($db);
+		$prodB->fetch($objB->fk_product);
+	
+		$r = strcmp(strtoupper(trim($prodA->ref)), strtoupper(trim($prodB->ref)));
+		if ($r < 0) $r = -1;
+		elseif ($r > 1) $r = 1;
+		else $r = 0;
+		
+		return $r;
+	}
+	
 	function save($PDOdb)
 	{
 		//si on valide l'inventaire on sauvegarde le stock à cette instant
@@ -44,6 +66,8 @@ class TInventory extends TObjetStd
 		}
 		
 		parent::save($PDOdb);
+		
+		usort($this->TInventorydet, array('TInventory', 'customSort'));
 	}
 	
 	function set_values($Tab)

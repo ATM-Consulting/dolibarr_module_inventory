@@ -61,6 +61,8 @@ function inventoryPrepareHead(&$inventory, $title='Inventaire', $get='')
 	);
 }
 
+
+
 function inventorySelectProducts(&$PDOdb, &$inventory)
 {
 	global $conf;
@@ -72,7 +74,7 @@ function inventorySelectProducts(&$PDOdb, &$inventory)
 		$except_product_id[] = $TInventorydet->fk_product;
 	}
 	
-	$sql = 'SELECT rowid, ref, label FROM '.MAIN_DB_PREFIX.'product WHERE fk_product_type = 0 AND rowid NOT IN ('.implode(',', $except_product_id).')';
+	$sql = 'SELECT rowid, ref, label FROM '.MAIN_DB_PREFIX.'product WHERE fk_product_type = 0 AND rowid NOT IN ('.implode(',', $except_product_id).') ORDER BY ref, label';
 	$PDOdb->Execute($sql);
 	
 	if (! empty($conf->use_javascript_ajax) && ! empty($conf->global->PRODUIT_USE_SEARCH_TO_SELECT))

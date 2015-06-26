@@ -55,7 +55,7 @@ function _action()
 			
 			$fk_inventory = $inventory->save($PDOdb);
 			
-			$sql = 'SELECT DISTINCT fk_product FROM '.MAIN_DB_PREFIX.'product_stock WHERE fk_entrepot = '.(int) $_REQUEST['fk_warehouse'];
+			$sql = 'SELECT DISTINCT ps.fk_product FROM '.MAIN_DB_PREFIX.'product_stock ps INNER JOIN '.MAIN_DB_PREFIX.'product p ON (p.rowid = ps.fk_product) WHERE ps.fk_entrepot = '.(int) $_REQUEST['fk_warehouse'].' ORDER BY p.ref,p.label';
 			$PDOdb->Execute($sql);
 			
 			while ($PDOdb->Get_line())
@@ -376,9 +376,9 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 	llxFooter('');
 }
 
+
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, $form)
 {
-	
 	$inventory->amount_actual = 0;
 	
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
