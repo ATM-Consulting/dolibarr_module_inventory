@@ -94,7 +94,7 @@ class modinventory extends DolibarrModules
 		$this->dirs = array();
 
 		// Config pages. Put here list of php page, stored into inventory/admin directory, to use to setup module.
-		$this->config_page_url = array("inventory_about.php@inventory");
+		$this->config_page_url = array("inventory_setup.php@inventory");
 
 		// Dependencies
 		$this->hidden = false;			// A condition to hide module

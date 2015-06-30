@@ -414,7 +414,8 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, $form)
 }
 
 function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory) 
-{	
+{
+    	
 	$TBS=new TTemplateTBS();
 
 	$TInventoryPrint = array(); // Tableau envoyé à la fonction render contenant les informations concernant l'inventaire
@@ -442,7 +443,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 	$template = "templateINVENTORY.odt";
 	//$template = "templateOF.doc";
 
-	$TBS->render(dol_buildpath('inventory/exempleTemplate/'.$template)
+	$file_gen = $TBS->render(dol_buildpath('inventory/exempleTemplate/'.$template)
 		,array(
 			'TInventoryPrint'=>$TInventoryPrint
 		)
@@ -457,14 +458,24 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 		,array()
 		,array(
 			'outFile'=>$dir.$inventory->getId().".odt"
-			,"convertToPDF"=>true
+			,"convertToPDF"=>(!empty($conf->global->INVENTORY_GEN_PDF) ? true : false)
 			,'charset'=>OPENTBS_ALREADY_UTF8
-			//'outFile'=>$dir.$assetOf->numero.".doc"
+			
 		)
 		
 	);	
 	
-	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=inventory&entity=".$conf->entity."&file=".$dirName."/".$inventory->getId().".pdf");
+    $size = filesize("./" . basename($file_gen));
+    header("Content-Type: application/force-download; name=\"" . basename($file_gen) . "\"");
+    header("Content-Transfer-Encoding: binary");
+    header("Content-Length: $size");
+    header("Content-Disposition: attachment; filename=\"" . basename($file_gen) . "\"");
+    header("Expires: 0");
+    header("Cache-Control: no-cache, must-revalidate");
+    header("Pragma: no-cache"); 
+    
+	readfile($file_gen);
+    
 	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
 
 }
