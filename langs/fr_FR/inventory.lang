@@ -27,3 +27,4 @@ inventoryErrorQtyAdd=Erreur : au moins une des quantités saisie est inférieure
 inventoryMvtStock=<a href="%s">Inventaire n°%s</a>
 inventoryWarningProductAlreadyExists=Le produit existe déjà dans la liste
 INVENTORY_GEN_PDF=Générer le document inventaire en PDF (nécessite la présence de libreoffice Writer sur le serveur)
+SelectCategory=Choix du filtre de catégorie

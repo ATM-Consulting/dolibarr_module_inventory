@@ -54,8 +54,20 @@ function _action()
 			$inventory->set_values($_REQUEST);
 			
 			$fk_inventory = $inventory->save($PDOdb);
-			
-			$sql = 'SELECT DISTINCT ps.fk_product FROM '.MAIN_DB_PREFIX.'product_stock ps INNER JOIN '.MAIN_DB_PREFIX.'product p ON (p.rowid = ps.fk_product) WHERE ps.fk_entrepot = '.(int) $_REQUEST['fk_warehouse'].' ORDER BY p.ref,p.label';
+            $fk_category = (int)GETPOST('fk_category');
+            $fk_warehouse = (int)GETPOST('fk_warehouse');
+            
+			$sql = 'SELECT DISTINCT ps.fk_product 
+			     FROM '.MAIN_DB_PREFIX.'product_stock ps 
+			     INNER JOIN '.MAIN_DB_PREFIX.'product p ON (p.rowid = ps.fk_product) 
+                 LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)
+			     WHERE ps.fk_entrepot = '.$fk_warehouse;
+                 
+            if($fk_category>0) $sql.= " AND cp.fk_categorie=".$fk_category;
+			     
+			$sql.=' ORDER BY p.ref ASC,p.label ASC';
+                 
+                 
 			$PDOdb->Execute($sql);
 			
 			while ($PDOdb->Get_line())
@@ -300,8 +312,10 @@ function _liste(&$user, &$db, &$conf, &$langs)
 	llxFooter('');
 }
 
-function _fiche_warehouse($PDOdb, $user, $db, $conf, $langs, $inventory)
+function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 {
+	dol_include_once('/categories/class/categorie.class.php');    
+        
 	llxHeader('',$langs->trans('inventorySelectWarehouse'),'','');
 	print dol_get_fiche_head(inventoryPrepareHead($inventory));
 	
@@ -310,8 +324,11 @@ function _fiche_warehouse($PDOdb, $user, $db, $conf, $langs, $inventory)
 	$form->Set_typeaff('edit');
 	
 	$formproduct = new FormProduct($db);
-	print $langs->trans('inventorySelectWarehouse') .'&nbsp;:&nbsp;'. $formproduct->selectWarehouses('', 'fk_warehouse');
+	print $langs->trans('inventorySelectWarehouse') .'&nbsp;:&nbsp;'. $formproduct->selectWarehouses('', 'fk_warehouse').'<br />';
 	
+    $formDoli = new Form($db);
+    print $langs->trans('SelectCategory') .'&nbsp;:&nbsp;'.$formDoli->select_all_categories(0,'', 'fk_category');
+    
 	print '<div class="tabsAction">';
 	print '<input type="submit" class="butAction" value="'.$langs->trans('inventoryConfirmCreate').'" />';
 	print '</div>';
