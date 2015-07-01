@@ -24,11 +24,15 @@ class TInventory extends TObjetStd
 		
 	}
 	
+	function sort_det() 
+	{
+		usort($this->TInventorydet, array('TInventory', 'customSort'));
+	}
+	
 	function load(&$PDOdb, $id) 
 	{
 		$res = parent::load($PDOdb, $id);
-		
-		usort($this->TInventorydet, array('TInventory', 'customSort'));
+		$this->sort_det();
 		
 		$this->amount = 0;
 		foreach($this->TInventorydet as &$det){
@@ -43,15 +47,10 @@ class TInventory extends TObjetStd
 	{
 		global $db;
 		
-		$prodA = new Product($db);
-		$prodA->fetch($objA->fk_product);
+		$r = strcmp(strtoupper(trim($objA->product->ref)), strtoupper(trim($objB->product->ref)));
 		
-		$prodB = new Product($db);
-		$prodB->fetch($objB->fk_product);
-	
-		$r = strcmp(strtoupper(trim($prodA->ref)), strtoupper(trim($prodB->ref)));
 		if ($r < 0) $r = -1;
-		elseif ($r > 1) $r = 1;
+		elseif ($r > 0) $r = 1;
 		else $r = 0;
 		
 		return $r;
@@ -66,8 +65,6 @@ class TInventory extends TObjetStd
 		}
 		
 		parent::save($PDOdb);
-		
-		usort($this->TInventorydet, array('TInventory', 'customSort'));
 	}
 	
 	function set_values($Tab)
@@ -140,5 +137,26 @@ class TInventorydet extends TObjetStd
 		
 		$this->entity = $conf->entity;
 		$this->errors = array();
+		
+		$this->product = null;
+		
 	}
+	
+	function load(&$PDOdb, $id) 
+	{
+		parent::load($PDOdb, $id);
+		$this->load_product();
+	}
+	
+	function load_product() 
+	{
+		global $db;
+		
+		if($this->fk_product>0) {
+			$this->product = new Product($db);
+			$this->product->fetch($this->fk_product);
+		}
+		
+	}
+	
 }

@@ -147,18 +147,18 @@ function _action()
 			
 			if ($fk_product)
 			{
-				
-			
-				if (!empty($conf->use_javascript_ajax) && !empty($conf->global->PRODUIT_USE_SEARCH_TO_SELECT))
-				{
-					$product = new Product($db);
-					$product->fetch(null, $fk_product);				
+				$product = new Product($db);
+				$product->fetch($fk_product);	// ! ref TODO vérifier quand même			
+				if($product->type != 0) {
+					setEventMessage($langs->trans('ThisIsNotAProduct'),'errors');
+				}
+				else{
 					
 					//Check product not already exists
 					$alreadyExists = false;
-					foreach ($inventory->TInventorydet as $TInventory)
+					foreach ($inventory->TInventorydet as $invdet)
 					{
-						if ($TInventory->fk_product == $product->id)
+						if ($invdet->fk_product == $product->id)
 						{
 							$alreadyExists = true;
 							break;
@@ -170,20 +170,19 @@ function _action()
 						$k = $inventory->addChild($PDOdb, 'TInventorydet');
 						$inventory->TInventorydet[$k]->fk_inventory = $id;
 						$inventory->TInventorydet[$k]->fk_product = $product->id;
+						
+						$inventory->TInventorydet[$k]->load_product();
+						
 					}
 					else
 					{
 						setEventMessage($langs->trans('inventoryWarningProductAlreadyExists'), 'warnings');
 					}
-				}
-				else
-				{
-					$k = $inventory->addChild($PDOdb, 'TInventorydet');
-					$inventory->TInventorydet[$k]->fk_inventory = $id;
-					$inventory->TInventorydet[$k]->fk_product = $fk_product;
+					
 				}
 				
 				$inventory->save($PDOdb);
+				$inventory->sort_det();
 			}
 			
 			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'edit');

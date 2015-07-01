@@ -65,7 +65,7 @@ function inventoryPrepareHead(&$inventory, $title='Inventaire', $get='')
 
 function inventorySelectProducts(&$PDOdb, &$inventory)
 {
-	global $conf;
+	global $conf,$db;
 	
 	$except_product_id = array();
 	
@@ -73,6 +73,13 @@ function inventorySelectProducts(&$PDOdb, &$inventory)
 	{
 		$except_product_id[] = $TInventorydet->fk_product;
 	}
+	
+	ob_start();
+	$formproduct = new Form($db);
+	$formproduct->select_produits(-1, 'fk_product');
+	$select_html = ob_get_clean();
+	
+	/*
 	
 	$sql = 'SELECT rowid, ref, label FROM '.MAIN_DB_PREFIX.'product WHERE fk_product_type = 0 AND rowid NOT IN ('.implode(',', $except_product_id).') ORDER BY ref, label';
 	$PDOdb->Execute($sql);
@@ -94,7 +101,7 @@ function inventorySelectProducts(&$PDOdb, &$inventory)
 		}
 		$select_html.= '</select>';
 	}
-
+	*/
 	return $select_html;
 }
 
