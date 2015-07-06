@@ -9,10 +9,12 @@ class TInventory extends TObjetStd
 		global $conf;
 		
 		$this->set_table(MAIN_DB_PREFIX.'inventory');
-    	$this->TChamps = array(); 	  
+    	 
 		$this->add_champs('fk_warehouse,entity', 'type=entier;');
 		$this->add_champs('status', 'type=entier;');
 		
+        $this->_init_vars('title');
+        
 	    $this->start();
 		
 		$this->setChild('TInventorydet','fk_inventory');
@@ -94,6 +96,18 @@ class TInventory extends TObjetStd
 		return parent::set_values($Tab);
 	}
 	
+    function deleteAllLine(&$PDOdb) {
+        
+        foreach($this->TInventorydet as &$det) {
+            $det->to_delete = true;
+        }
+        
+        $this->save($PDOdb);
+      
+        $this->TInventorydet=array();
+        
+    }
+    
 	function regulate()
 	{
 		global $db,$user,$langs;
@@ -120,6 +134,20 @@ class TInventory extends TObjetStd
 		
 		return 1;
 	}
+    
+    static function getLink($id) {
+        global $langs;
+        
+        $PDOdb=new TPDOdb;
+        
+        $i = new TInventory;
+        $i->load($PDOdb, $id);
+        
+        $title = !empty($i->title) ? $i->title : $langs->trans('inventoryTitle').' '.$i->getId();
+        
+        return '<a href="'.dol_buildpath('/inventory/inventory.php?id='.$i->getId().'&action=view', 2).'">'.img_picto('','object_list.png','',0).' '.$title.'</a>';
+        
+    }
 }
 
 class TInventorydet extends TObjetStd
@@ -144,8 +172,10 @@ class TInventorydet extends TObjetStd
 	
 	function load(&$PDOdb, $id) 
 	{
-		parent::load($PDOdb, $id);
+		$res = parent::load($PDOdb, $id);
 		$this->load_product();
+        
+        return $res;
 	}
 	
 	function load_product() 

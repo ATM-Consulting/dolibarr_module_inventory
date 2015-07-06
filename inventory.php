@@ -125,11 +125,19 @@ function _action()
 			
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
-			$inventory->status = 1;
-			$inventory->save($PDOdb);
-			
-			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'view');
-			
+            
+            if($inventory->status == 0) {
+                $inventory->status = 1;
+                $inventory->save($PDOdb);
+                
+                _fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'view');
+                
+            
+            }
+            else {
+               _fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'view');
+            }
+            
 			break;
 			
 		case 'add_line':
@@ -206,7 +214,23 @@ function _action()
 			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'edit');
 			
 			break;
-			
+        case 'flush':
+            if (!$user->rights->inventory->create) accessforbidden();
+            
+            $PDOdb = new TPDOdb;
+            $id = __get('id', 0, 'int');
+            
+            $inventory = new TInventory;
+            $inventory->load($PDOdb, $id);
+            
+            $inventory->deleteAllLine($PDOdb);
+            
+            setEventMessage('Inventaire vidé');
+            
+            _fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'edit');
+           
+            
+            break;
 		case 'delete':
 			if (!$user->rights->inventory->create) accessforbidden();
             
@@ -267,8 +291,7 @@ function _liste(&$user, &$db, &$conf, &$langs)
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
-			'rowid'=>'<a href="'.dol_buildpath('/inventory/inventory.php?id=@val@&action=view', 2).'">'.img_picto('','object_list.png','',0).' '.$langs->trans('inventoryTitle').' @val@</a>'
-			,'fk_warehouse'=>'<a href="'.DOL_URL_ROOT.'/product/stock/card.php?id=@val@">'.img_picto('','object_stock.png','',0).' @label@</a>'
+			'fk_warehouse'=>'<a href="'.DOL_URL_ROOT.'/product/stock/card.php?id=@val@">'.img_picto('','object_stock.png','',0).' @label@</a>'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
@@ -294,6 +317,8 @@ function _liste(&$user, &$db, &$conf, &$langs)
 		)
 		,'eval'=>array(
 			'status' => '(@val@ ? img_picto("'.$langs->trans("inventoryValidate").'", "statut4") : img_picto("'.$langs->trans("inventoryDraft").'", "statut3"))'
+			,'rowid'=>'TInventory::getLink(@val@)'
+            
 		)
 	));
 	
@@ -322,11 +347,28 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 	print $form->hidden('action', 'confirmCreate');
 	$form->Set_typeaff('edit');
 	
-	$formproduct = new FormProduct($db);
-	print $langs->trans('inventorySelectWarehouse') .'&nbsp;:&nbsp;'. $formproduct->selectWarehouses('', 'fk_warehouse').'<br />';
-	
+    $formproduct = new FormProduct($db);
     $formDoli = new Form($db);
-    print $langs->trans('SelectCategory') .'&nbsp;:&nbsp;'.$formDoli->select_all_categories(0,'', 'fk_category');
+    
+    ?>
+    <table class="border" width="100%" >
+        <tr>
+            <td><?php echo $langs->trans('Title') ?></td>
+            <td><?php echo $form->texte('', 'title', '',50,255) ?></td> 
+        </tr>
+        
+        <tr>
+            <td><?php echo $langs->trans('inventorySelectWarehouse') ?></td>
+            <td><?php echo $formproduct->selectWarehouses('', 'fk_warehouse') ?></td> 
+        </tr>
+        
+        <tr>
+            <td><?php echo $langs->trans('SelectCategory') ?></td>
+            <td><?php echo $formDoli->select_all_categories(0,'', 'fk_category') ?></td> 
+        </tr>
+        
+    </table>
+    <?
     
 	print '<div class="tabsAction">';
 	print '<input type="submit" class="butAction" value="'.$langs->trans('inventoryConfirmCreate').'" />';
@@ -376,6 +418,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 				,'url' => dol_buildpath('/inventory/inventory.php', 2)
 				,'can_validate' => (int) $user->rights->inventory->validate
 				,'is_already_validate' => (int) $inventory->status
+				,'token'=>$_SESSION['newtoken']
 			)
 			,'product'=>array(
 				'list'=>inventorySelectProducts($PDOdb, $inventory)
@@ -393,17 +436,17 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 }
 
 
-function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, $form)
+function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 {
 	$inventory->amount_actual = 0;
 	
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
 	{
-		$product = new Product($db);
-		$product->fetch($TInventorydet->fk_product);
-		
+	    
+        $product = & $TInventorydet->product;
 		if (!$inventory->status) //En cours
 		{
+		    
 			$res = $product->load_stock();
 			$stock = $res > 0 ? (float) $product->stock_warehouse[$inventory->fk_warehouse]->real : 0;
 		}
@@ -418,12 +461,15 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, $form)
 		$TInventory[]=array(
 			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
 			,'qty' => $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
+                        .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
 			,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
 			,'qty_stock' => $stock
 			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
 			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 2).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
 			,'pmp'=>price(round($TInventorydet->pmp * $TInventorydet->qty_view,2))
 			,'pmp_actual'=>price(round($pmp_actual,2))
+            ,'k'=>$k
+            ,'id'=>$TInventorydet->getId()
 		);
 	}
 	
