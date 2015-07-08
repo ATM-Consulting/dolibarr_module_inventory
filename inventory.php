@@ -397,6 +397,37 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 	$TBS->TBS->protect=false;
 	$TBS->TBS->noerr=true;
 	
+	//set_time_limit(10);
+	//var_dump($TInventory);exit;	
+	
+	
+	$inventoryTPL = array(
+		'id'=> $inventory->getId()
+		,'date_cre' => $inventory->get_date('date_cre', 'd/m/Y')
+		,'date_maj' => $inventory->get_date('date_maj', 'd/m/Y H:i')
+		,'fk_warehouse' => $inventory->fk_warehouse
+		,'status' => $inventory->status
+		,'entity' => $inventory->entity
+		,'amount' => price( round($inventory->amount,2) )
+		,'amount_actual'=>price (round($inventory->amount_actual,2))
+		
+	);
+	
+	$view = array(
+		'mode' => $mode
+		,'url' => dol_buildpath('/inventory/inventory.php', 2)
+		,'can_validate' => (int) $user->rights->inventory->validate
+		,'is_already_validate' => (int) $inventory->status
+		,'token'=>$_SESSION['newtoken']
+	);
+	
+	$product = array(
+		'list'=>inventorySelectProducts($PDOdb, $inventory)
+	);
+
+	include './tpl/inventory.tpl2.php';
+	
+	/*
 	print $TBS->render('tpl/inventory.tpl.php'
 		,array(
 			'TInventory'=>$TInventory
@@ -425,6 +456,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 			)
 		)
 	);
+	*/
 	
 	/*$doliform = new Form($db);
 	ob_start();
@@ -477,7 +509,6 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 
 function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory) 
 {
-    	
 	$TBS=new TTemplateTBS();
 
 	$TInventoryPrint = array(); // Tableau envoyé à la fonction render contenant les informations concernant l'inventaire
@@ -525,8 +556,11 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 			
 		)
 		
-	);	
+	);
+
+	header("Location: ".DOL_URL_ROOT."/document.php?modulepart=inventory&entity=".$conf->entity."&file=".$dirName."/".$inventory->getId(). (!empty($conf->global->INVENTORY_GEN_PDF) ? '.pdf' : '.odt') );
 	
+   /*
     $size = filesize("./" . basename($file_gen));
     header("Content-Type: application/force-download; name=\"" . basename($file_gen) . "\"");
     header("Content-Transfer-Encoding: binary");
@@ -537,6 +571,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
     header("Pragma: no-cache"); 
     
 	readfile($file_gen);
+   */
     
 	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
 
