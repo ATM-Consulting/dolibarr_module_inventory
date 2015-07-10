@@ -368,7 +368,7 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
         </tr>
         
     </table>
-    <?
+    <?php
     
 	print '<div class="tabsAction">';
 	print '<input type="submit" class="butAction" value="'.$langs->trans('inventoryConfirmCreate').'" />';
