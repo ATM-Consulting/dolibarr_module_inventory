@@ -11,7 +11,7 @@
     
     switch ($put) {
         case 'qty':
-            if (!$user->rights->inventory->create) { echo -1; exit; }
+            if (!$user->rights->inventory->write) { echo -1; exit; }
             
             $fk_det_inventory = GETPOST('fk_det_inventory');
             

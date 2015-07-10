@@ -83,7 +83,7 @@ function _action()
 		
 		case 'view':
 		case 'edit':
-			if (!$user->rights->inventory->create) accessforbidden();
+			if (!$user->rights->inventory->write) accessforbidden();
 			
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
