@@ -31,8 +31,11 @@ class TInventory extends TObjetStd
 		usort($this->TInventorydet, array('TInventory', 'customSort'));
 	}
 	
-	function load(&$PDOdb, $id) 
+	function load(&$PDOdb, $id,$annexe = true) 
 	{
+	    
+        if(!$annexe) $this->withChild = false;
+        
 		$res = parent::load($PDOdb, $id);
 		$this->sort_det();
 		
@@ -141,7 +144,7 @@ class TInventory extends TObjetStd
         $PDOdb=new TPDOdb;
         
         $i = new TInventory;
-        $i->load($PDOdb, $id);
+        $i->load($PDOdb, $id, false);
         
         $title = !empty($i->title) ? $i->title : $langs->trans('inventoryTitle').' '.$i->getId();
         
