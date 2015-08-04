@@ -543,7 +543,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 		,array(
 			'date_cre'=>$inventory->get_date('date_cre', 'd/m/Y')
 			,'date_maj'=>$inventory->get_date('date_maj', 'd/m/Y H:i')
-			,'numero'=>$inventory->getId()
+			,'numero'=>empty($inventory->title) ? 'Inventaire n°'.$inventory->getId() : $inventory->title
 			,'warehouse'=>$warehouse->libelle
 			,'status'=>($inventory->status ? $langs->transnoentitiesnoconv('inventoryValidate') : $langs->transnoentitiesnoconv('inventoryDraft'))
 			,'logo'=>DOL_DATA_ROOT."/mycompany/logos/".MAIN_INFO_SOCIETE_LOGO
