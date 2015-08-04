@@ -25,6 +25,7 @@ inventoryConfirmCreate=Créer un inventaire
 inventoryOfWarehouse=Inventaire de l'entrepôt : %s
 inventoryErrorQtyAdd=Erreur : au moins une des quantités saisie est inférieure à 0
 inventoryMvtStock=<a href="%s">Inventaire n°%s</a>
+inventoryMvtStockWithNomInventaire=<a href="%s">%s</a>
 inventoryWarningProductAlreadyExists=Le produit existe déjà dans la liste
 INVENTORY_GEN_PDF=Générer le document inventaire en PDF (nécessite la présence de libreoffice Writer sur le serveur)
 SelectCategory=Choix du filtre de catégorie
