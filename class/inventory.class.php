@@ -188,26 +188,31 @@ class TInventorydet extends TObjetStd
     function setStockDate(&$PDOdb, $date, $fk_warehouse) {
         
         $res = $this->product->load_stock();
-        $stock = $res > 0 ? (float) $product->stock_warehouse[$fk_warehouse]->real : 0;
+        
+        $stock = $res > 0 ? (float) $this->product->stock_warehouse[$fk_warehouse]->real : 0;
+        $pmp = $res > 0 ? (float) $this->product->stock_warehouse[$fk_warehouse]->pmp : 0;
         
         $this->qty_stock = $stock;
-        $this->pmp = $product->pmp;
+        $this->pmp = $pmp;
         
         $last_pa = 0;
-        $PDOdb->Execute("SELECT price FROM ".MAIN_DB_PREFIX."stock_mouvement 
-                WHERE fk_entrepot=".$inventory->fk_warehouse." 
-                AND fk_product=".$product->id." 
+        $sql = "SELECT price FROM ".MAIN_DB_PREFIX."stock_mouvement 
+                WHERE fk_entrepot=".$fk_warehouse." 
+                AND fk_product=".$this->fk_product." 
                 AND origintype='order_supplier'
                 AND price>0 
                 AND datem<='".$date." 23:59:59'
-                ORDER BY datem DESC LIMIT 1");
+                ORDER BY datem DESC LIMIT 1";
+               
+        $PDOdb->Execute($sql);
        
         if($obj = $PDOdb->Get_line()) {
             $last_pa = $obj->price;
         }
         
         $this->pa = $last_pa;
-        
+      /*  var_dump($fk_warehouse,$this->product->stock_warehouse,$this->pmp, $this->pa, $this->qty_stock);
+        exit;*/
     }
     
 	function load_product() 

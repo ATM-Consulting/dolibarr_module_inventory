@@ -53,7 +53,7 @@ function _action()
 			$inventory = new TInventory;
 			$inventory->set_values($_REQUEST);
 			
-			$fk_inventory = $inventory->save($PDOdb);
+            $fk_inventory = $inventory->save($PDOdb);
             $fk_category = (int)GETPOST('fk_category');
             $fk_warehouse = (int)GETPOST('fk_warehouse');
             
@@ -68,13 +68,19 @@ function _action()
 			$sql.=' ORDER BY p.ref ASC,p.label ASC';
                  
                  
-			$PDOdb->Execute($sql);
+			$Tab = $PDOdb->ExecuteAsArray($sql);
 			
-			while ($PDOdb->Get_line())
-			{
+			foreach($Tab as &$row) {
+			
 				$k = $inventory->addChild($PDOdb, 'TInventorydet');
 				$inventory->TInventorydet[$k]->fk_inventory = $fk_inventory;
-				$inventory->TInventorydet[$k]->fk_product = $PDOdb->Get_field('fk_product');
+				$inventory->TInventorydet[$k]->fk_product = $row->fk_product;
+                
+                $inventory->TInventorydet[$k]->load_product();
+                        
+                $date = $inventory->get_date('date_inventory', 'Y-m-d');
+                if(empty($date))$date = $inventory->get_date('date_cre', 'Y-m-d'); 
+                $inventory->TInventorydet[$k]->setStockDate($PDOdb, $date , $inventory->fk_warehouse);
 			}
 			
 			$inventory->save($PDOdb);
@@ -359,6 +365,10 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
         <tr>
             <td><?php echo $langs->trans('Title') ?></td>
             <td><?php echo $form->texte('', 'title', '',50,255) ?></td> 
+        </tr>
+        <tr>
+            <td><?php echo $langs->trans('Date') ?></td>
+            <td><?php echo $form->calendrier('', 'date_inventory',time()) ?></td> 
         </tr>
         
         <tr>
