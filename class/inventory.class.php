@@ -193,7 +193,7 @@ class TInventorydet extends TObjetStd
         $pmp = $res > 0 ? (float) $this->product->stock_warehouse[$fk_warehouse]->pmp : 0;
         
         $this->qty_stock = $stock;
-        $this->pmp = $pmp;
+        $this->pmp = $pmp; //TODO ce pmp ne prends pas en compte la date, à modifier
         
         $last_pa = 0;
         $sql = "SELECT price FROM ".MAIN_DB_PREFIX."stock_mouvement 
