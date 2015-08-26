@@ -12,7 +12,8 @@ class TInventory extends TObjetStd
     	 
 		$this->add_champs('fk_warehouse,entity', 'type=entier;');
 		$this->add_champs('status', 'type=entier;');
-		
+        $this->add_champs('date_inventory', 'type=date;');
+        
         $this->_init_vars('title');
         
 	    $this->start();
@@ -165,7 +166,7 @@ class TInventorydet extends TObjetStd
 		$this->set_table(MAIN_DB_PREFIX.'inventorydet');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_inventory,fk_product,entity', 'type=entier;');
-		$this->add_champs('qty_view,qty_stock,qty_regulated,pmp', 'type=float;');
+		$this->add_champs('qty_view,qty_stock,qty_regulated,pmp,pa', 'type=float;');
 		
 	    $this->start();
 		
@@ -184,6 +185,31 @@ class TInventorydet extends TObjetStd
         return $res;
 	}
 	
+    function setStockDate(&$PDOdb, $date, $fk_warehouse) {
+        
+        $res = $this->product->load_stock();
+        $stock = $res > 0 ? (float) $product->stock_warehouse[$fk_warehouse]->real : 0;
+        
+        $this->qty_stock = $stock;
+        $this->pmp = $product->pmp;
+        
+        $last_pa = 0;
+        $PDOdb->Execute("SELECT price FROM ".MAIN_DB_PREFIX."stock_mouvement 
+                WHERE fk_entrepot=".$inventory->fk_warehouse." 
+                AND fk_product=".$product->id." 
+                AND origintype='order_supplier'
+                AND price>0 
+                AND datem<='".$date." 23:59:59'
+                ORDER BY datem DESC LIMIT 1");
+       
+        if($obj = $PDOdb->Get_line()) {
+            $last_pa = $obj->price;
+        }
+        
+        $this->pa = $last_pa;
+        
+    }
+    
 	function load_product() 
 	{
 		global $db;

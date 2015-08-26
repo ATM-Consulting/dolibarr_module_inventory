@@ -181,6 +181,10 @@ function _action()
 						
 						$inventory->TInventorydet[$k]->load_product();
 						
+                        $date = $inventory->get_date('date_inventory', 'Y-m-d');
+                        if(empty($date))$date = $inventory->get_date('date_cre', 'Y-m-d'); 
+                        $inventory->TInventorydet[$k]->setStockDate($PDOdb, $date , $inventory->fk_warehouse);
+                        
 					}
 					else
 					{
@@ -425,44 +429,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 		'list'=>inventorySelectProducts($PDOdb, $inventory)
 	);
 
-	include './tpl/inventory.tpl2.php';
-	
-	/*
-	print $TBS->render('tpl/inventory.tpl.php'
-		,array(
-			'TInventory'=>$TInventory
-		)
-		,array(
-			'inventory'=>array(
-				'id'=> $inventory->getId()
-				,'date_cre' => $inventory->get_date('date_cre', 'd/m/Y')
-				,'date_maj' => $inventory->get_date('date_maj', 'd/m/Y H:i')
-				,'fk_warehouse' => $inventory->fk_warehouse
-				,'status' => $inventory->status
-				,'entity' => $inventory->entity
-				,'amount' => price( round($inventory->amount,2) )
-				,'amount_actual'=>price (round($inventory->amount_actual,2))
-				
-			)
-			,'view'=>array(
-				'mode' => $mode
-				,'url' => dol_buildpath('/inventory/inventory.php', 2)
-				,'can_validate' => (int) $user->rights->inventory->validate
-				,'is_already_validate' => (int) $inventory->status
-				,'token'=>$_SESSION['newtoken']
-			)
-			,'product'=>array(
-				'list'=>inventorySelectProducts($PDOdb, $inventory)
-			)
-		)
-	);
-	*/
-	
-	/*$doliform = new Form($db);
-	ob_start();
-	$doliform->select_produits('', "fk_product", 0, $conf->product->limit_size);
-	$productlist = ob_get_clean();*/
-	
+	include './tpl/inventory.tpl.php';
 	
 	llxFooter('');
 }
@@ -476,20 +443,14 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 	{
 	    
         $product = & $TInventorydet->product;
-		if (!$inventory->status) //En cours
-		{
-		    
-			$res = $product->load_stock();
-			$stock = $res > 0 ? (float) $product->stock_warehouse[$inventory->fk_warehouse]->real : 0;
-		}
-		else //Validé
-		{
-			$stock = $TInventorydet->qty_stock;
-		}
-
-		$pmp_actual = $product->pmp * $stock;
+		$stock = $TInventorydet->qty_stock;
+	
+        $pmp = $TInventorydet->pmp;
+		$pmp_actual = $pmp * $stock;
 		$inventory->amount_actual+=$pmp_actual;
 
+        $last_pa = $TInventorydet->pa;
+        
 		$TInventory[]=array(
 			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
 			,'qty' => $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
@@ -498,8 +459,10 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 			,'qty_stock' => $stock
 			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
 			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 2).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
-			,'pmp'=>price(round($TInventorydet->pmp * $TInventorydet->qty_view,2))
-			,'pmp_actual'=>price(round($pmp_actual,2))
+			,'pmp_stock'=>round($pmp_actual,2)
+            ,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
+            ,'pa_stock'=>round($last_pa * $stock,2)
+            ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
             ,'k'=>$k
             ,'id'=>$TInventorydet->getId()
 		);
