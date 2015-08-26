@@ -131,7 +131,10 @@ class TInventory extends TObjetStd
 						
 				$href = dol_buildpath('/inventory/inventory.php?id='.$this->getId().'&action=view', 2);
 				
-				$product->correct_stock($user, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
+				if(empty($this->title))
+					$product->correct_stock($user, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
+				else
+					$product->correct_stock($user, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStockWithNomInventaire', $href, $this->title));
 			}
 		}
 		
