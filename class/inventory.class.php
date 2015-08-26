@@ -112,6 +112,22 @@ class TInventory extends TObjetStd
         
     }
     
+    function add_product(&$PDOdb, $fk_product) {
+        
+        $k = $this->addChild($PDOdb, 'TInventorydet');
+        $det =  &$this->TInventorydet[$k];
+        
+        $det->fk_inventory = $this->getId();
+        $det->fk_product =$fk_product;
+        
+        $det->load_product();
+                
+        $date = $this->get_date('date_inventory', 'Y-m-d');
+        if(empty($date))$date = $this->get_date('date_cre', 'Y-m-d'); 
+        $det->setStockDate($PDOdb, $date , $this->fk_warehouse);
+        
+    }
+    
 	function regulate()
 	{
 		global $db,$user,$langs;

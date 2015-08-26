@@ -72,15 +72,7 @@ function _action()
 			
 			foreach($Tab as &$row) {
 			
-				$k = $inventory->addChild($PDOdb, 'TInventorydet');
-				$inventory->TInventorydet[$k]->fk_inventory = $fk_inventory;
-				$inventory->TInventorydet[$k]->fk_product = $row->fk_product;
-                
-                $inventory->TInventorydet[$k]->load_product();
-                        
-                $date = $inventory->get_date('date_inventory', 'Y-m-d');
-                if(empty($date))$date = $inventory->get_date('date_cre', 'Y-m-d'); 
-                $inventory->TInventorydet[$k]->setStockDate($PDOdb, $date , $inventory->fk_warehouse);
+                $inventory->add_product($PDOdb, $row->fk_product);
 			}
 			
 			$inventory->save($PDOdb);
@@ -181,15 +173,7 @@ function _action()
 					
 					if (!$alreadyExists)
 					{
-						$k = $inventory->addChild($PDOdb, 'TInventorydet');
-						$inventory->TInventorydet[$k]->fk_inventory = $id;
-						$inventory->TInventorydet[$k]->fk_product = $product->id;
-						
-						$inventory->TInventorydet[$k]->load_product();
-						
-                        $date = $inventory->get_date('date_inventory', 'Y-m-d');
-                        if(empty($date))$date = $inventory->get_date('date_cre', 'Y-m-d'); 
-                        $inventory->TInventorydet[$k]->setStockDate($PDOdb, $date , $inventory->fk_warehouse);
+					    $inventory->add_product($PDOdb, $product->id);
                         
 					}
 					else
