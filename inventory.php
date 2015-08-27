@@ -500,6 +500,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 		,array(
 			'date_cre'=>$inventory->get_date('date_cre', 'd/m/Y')
 			,'date_maj'=>$inventory->get_date('date_maj', 'd/m/Y H:i')
+			,'date_inv'=>$inventory->get_date('date_inventory', 'd/m/Y')
 			,'numero'=>empty($inventory->title) ? 'Inventaire n°'.$inventory->getId() : $inventory->title
 			,'warehouse'=>$warehouse->libelle
 			,'status'=>($inventory->status ? $langs->transnoentitiesnoconv('inventoryValidate') : $langs->transnoentitiesnoconv('inventoryDraft'))
