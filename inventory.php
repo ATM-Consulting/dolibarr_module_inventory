@@ -266,7 +266,7 @@ function _liste(&$user, &$db, &$conf, &$langs)
 	$inventory = new TInventory;
 	$r = new TSSRenderControler($inventory);
 
-	$sql="SELECT i.rowid, e.label, i.fk_warehouse, i.date_cre, i.date_maj, i.status
+	$sql="SELECT i.rowid, e.label, i.date_inventory, i.fk_warehouse, i.date_cre, i.date_maj, i.status
 		  FROM ".MAIN_DB_PREFIX."inventory i
 		  LEFT JOIN ".MAIN_DB_PREFIX."entrepot e ON (e.rowid = i.fk_warehouse)
 		  WHERE i.entity=".(int) $conf->entity;
@@ -292,6 +292,7 @@ function _liste(&$user, &$db, &$conf, &$langs)
 		,'type'=>array(
 			'date_cre'=>'date'
 			,'date_maj'=>'datetime'
+			,'date_inventory'=>'date'
 		)
 		,'liste'=>array(
 			'titre'=>$langs->trans('inventoryListTitle')
@@ -305,6 +306,7 @@ function _liste(&$user, &$db, &$conf, &$langs)
 		,'title'=>array(
 			'rowid'=>'Numéro'
 			,'fk_warehouse'=>'Entrepôt'
+			,'date_inventory'=>'Date inventaire'
 			,'date_cre'=>'Date création'
 			,'date_maj'=>'Date mise à jour'
 			,'status'=>'Status'
@@ -398,6 +400,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 	//set_time_limit(10);
 	//var_dump($TInventory);exit;	
 	
+	print '<b>'.$langs->trans('inventoryOnDate')." ".$inventory->get_date('date_inventory').'</b><br><br>';
 	
 	$inventoryTPL = array(
 		'id'=> $inventory->getId()
