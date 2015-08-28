@@ -203,13 +203,10 @@ class TInventorydet extends TObjetStd
 	
     function setStockDate(&$PDOdb, $date, $fk_warehouse) {
         
-        $res = $this->product->load_stock();
-        
-        $stock = $res > 0 ? (float) $this->product->stock_warehouse[$fk_warehouse]->real : 0;
-        $pmp = $res > 0 ? (float) $this->product->stock_warehouse[$fk_warehouse]->pmp : 0;
-        
+		list($pmp,$stock) = $this->getPmpStockFromDate($PDOdb, $date, $fk_warehouse);
+		
         $this->qty_stock = $stock;
-        $this->pmp = $pmp; //TODO ce pmp ne prends pas en compte la date, à modifier
+        $this->pmp = $pmp;
         
         $last_pa = 0;
         $sql = "SELECT price FROM ".MAIN_DB_PREFIX."stock_mouvement 
@@ -230,6 +227,51 @@ class TInventorydet extends TObjetStd
       /*  var_dump($fk_warehouse,$this->product->stock_warehouse,$this->pmp, $this->pa, $this->qty_stock);
         exit;*/
     }
+
+	function getPmpStockFromDate(&$PDOdb, $date, $fk_warehouse){
+		
+		$res = $this->product->load_stock();
+		
+		$stock = $res > 0 ? (float) $this->product->stock_warehouse[$fk_warehouse]->real : 0;
+        $pmp = $res > 0 ? (float) $this->product->stock_warehouse[$fk_warehouse]->pmp : 0;
+		
+		//On récupère tous les mouvements de stocks du produit entre aujourd'hui et la date de l'inventaire
+		$sql = "SELECT value, price
+				FROM ".MAIN_DB_PREFIX."stock_mouvement
+				WHERE fk_product = ".$this->product->id."
+					AND fk_entrepot = ".$fk_warehouse."
+					AND datem > '".date('Y-m-d 23:59:59',strtotime($date))."'
+				ORDER BY datem DESC";
+
+		//echo $sql.'<br>';
+		$PDOdb->Execute($sql);
+		$TMouvementStock = $PDOdb->Get_All();
+		$laststock = $stock;
+		$lastpmp = $pmp;
+		//Pour chacun des mouvements on recalcule le PMP et le stock physique
+		foreach($TMouvementStock as $mouvement){
+			
+			//150
+			//if($this->product->id==394) echo 'laststock = '.$stock.'<br>';
+			
+			//9.33
+			//if($this->product->id==394) echo 'lastpmp = '.$pmp.'<br>';
+			$price = ($mouvement->price>0 && $mouvement->value>0) ? $mouvement->price : $lastpmp;  
+				
+			$stock_value = $laststock * $lastpmp;
+			
+			$laststock -= $mouvement->value;
+			
+			$last_stock_value = $stock_value - ($mouvement->value * $price);	
+			
+			$lastpmp = ($laststock != 0) ? $last_stock_value / $laststock : $lastpmp;
+			 
+			
+
+		}
+		
+		return array($lastpmp,$laststock);
+	}
     
 	function load_product() 
 	{
