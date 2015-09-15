@@ -70,6 +70,9 @@
 	<table width="100%" class="border workstation">
 		<tr style="background-color:#dedede;">
 			<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
+			<?php if (! empty($conf->barcode->enabled)) { ?>
+				<th align="center">Code-barre</td>
+			<?php } ?>
 			<?php if ($view['can_validate'] == 1) { ?>
 				<th align="center" width="20%">Quantité théorique</th>
 				<th align="center" width="20%" colspan="2">Valeur théorique</th>
@@ -110,6 +113,9 @@
             ?>
 			<tr style="background-color:<?php echo ($k%2 == 0) ? '#fff':'#eee'; ?>;">
 				<td align="left">&nbsp;&nbsp;<?php echo $row['produit']; ?></td>
+				<?php if (! empty($conf->barcode->enabled)) { ?>
+					<td align="center"><?php echo $row['barcode']; ?></td>
+				<?php } ?>
 				<?php if ($view['can_validate'] == 1) { ?>
 					<td align="center" style="background-color: #e8e8ff;"><?php echo $row['qty_stock']; ?></td>
 					<td align="right" style="background-color: #e8e8ff;"><?php echo price( $row['pmp_stock']); ?></td>

@@ -450,6 +450,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
         
 		$TInventory[]=array(
 			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
+			,'barcode' => $product->barcode
 			,'qty' => $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
                         .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
 			,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
