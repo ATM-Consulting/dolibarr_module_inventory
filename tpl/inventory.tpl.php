@@ -88,7 +88,7 @@
 		</tr>
 		<?php if ($view['can_validate'] == 1) { ?>
     	<tr style="background-color:#dedede;">
-    	    <th colspan="2">&nbsp;</th>
+    	    <th colspan="<?php echo empty($conf->barcode->enabled) ? 2 : 3;  ?>">&nbsp;</th>
     	    <th>PMP</th>
     	    <th>Dernier PA</th>
     	    <th>&nbsp;</th>
