@@ -67,7 +67,7 @@ class TInventory extends TObjetStd
 		//si on valide l'inventaire on sauvegarde le stock à cette instant
 		if ($this->status)
 		{
-			 $this->regulate();
+			 $this->regulate($PDOdb);
 		}
 		
 		parent::save($PDOdb);
@@ -128,7 +128,7 @@ class TInventory extends TObjetStd
         
     }
     
-	function regulate()
+	function regulate(&$PDOdb)
 	{
 		global $db,$user,$langs;
 		
@@ -139,6 +139,11 @@ class TInventory extends TObjetStd
 			
 			$product->load_stock();
 			$TInventorydet->qty_stock = $product->stock_warehouse[$this->fk_warehouse]->real;
+			
+			if(date('Y-m-d', $this->date_inventory) < date('Y-m-d')) {
+				$TRes = $TInventorydet->getPmpStockFromDate($PDOdb, date('Y-m-d', $this->date_inventory), $this->fk_warehouse);
+				$TInventorydet->qty_stock = $TRes[1];
+			}
 			
 			if ($TInventorydet->qty_view != $TInventorydet->qty_stock)
 			{
