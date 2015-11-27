@@ -217,7 +217,7 @@ class TInventorydet extends TObjetStd
         $sql = "SELECT price FROM ".MAIN_DB_PREFIX."stock_mouvement 
                 WHERE fk_entrepot=".$fk_warehouse." 
                 AND fk_product=".$this->fk_product." 
-                AND origintype='order_supplier'
+                AND (origintype='order_supplier' || origintype='invoice_supplier')
                 AND price>0 
                 AND datem<='".$date." 23:59:59'
                 ORDER BY datem DESC LIMIT 1";
