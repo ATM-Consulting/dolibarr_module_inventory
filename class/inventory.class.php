@@ -151,7 +151,7 @@ class TInventory extends TObjetStd
 				$nbpiece = abs($TInventorydet->qty_regulated);
 				$movement = (int) ($TInventorydet->qty_view < $TInventorydet->qty_stock); // 0 = add ; 1 = remove
 						
-				$href = dol_buildpath('/inventory/inventory.php?id='.$this->getId().'&action=view', 2);
+				$href = dol_buildpath('/inventory/inventory.php?id='.$this->getId().'&action=view', 1);
 				
 				if(empty($this->title))
 					$product->correct_stock($user, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
@@ -173,7 +173,7 @@ class TInventory extends TObjetStd
         
         $title = !empty($i->title) ? $i->title : $langs->trans('inventoryTitle').' '.$i->getId();
         
-        return '<a href="'.dol_buildpath('/inventory/inventory.php?id='.$i->getId().'&action=view', 2).'">'.img_picto('','object_list.png','',0).' '.$title.'</a>';
+        return '<a href="'.dol_buildpath('/inventory/inventory.php?id='.$i->getId().'&action=view', 1).'">'.img_picto('','object_list.png','',0).' '.$title.'</a>';
         
     }
 }

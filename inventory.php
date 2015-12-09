@@ -77,7 +77,7 @@ function _action()
 			
 			$inventory->save($PDOdb);
 			
-			header('Location: '.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=edit', 2));
+			header('Location: '.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=edit', 1));
 		
 		case 'view':
 		case 'edit':
@@ -112,7 +112,7 @@ function _action()
 			else 
 			{
 				$inventory->save($PDOdb);
-				header('Location: '.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=view', 2));
+				header('Location: '.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=view', 1));
 			}
 			
 			break;
@@ -236,7 +236,7 @@ function _action()
 			
 			$inventory->delete($PDOdb);
 			
-			header('Location: '.dol_buildpath('/inventory/inventory.php', 2));
+			header('Location: '.dol_buildpath('/inventory/inventory.php', 1));
 			exit;
 			//_liste($user, $db, $conf, $langs);
 			
@@ -416,7 +416,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 	
 	$view = array(
 		'mode' => $mode
-		,'url' => dol_buildpath('/inventory/inventory.php', 2)
+		,'url' => dol_buildpath('/inventory/inventory.php', 1)
 		,'can_validate' => (int) $user->rights->inventory->validate
 		,'is_already_validate' => (int) $inventory->status
 		,'token'=>$_SESSION['newtoken']
@@ -456,7 +456,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 			,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
 			,'qty_stock' => $stock
 			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 2).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
+			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
 			,'pmp_stock'=>round($pmp_actual,2)
             ,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
             ,'pa_stock'=>round($last_pa * $stock,2)
