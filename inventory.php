@@ -1,6 +1,9 @@
 <?php 
 
 require('config.php');
+
+ini_set('memory_limit', '512M');
+
 require('./class/inventory.class.php');
 require('./lib/inventory.lib.php');
 require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
@@ -9,6 +12,8 @@ include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 include_once DOL_DOCUMENT_ROOT.'/product/stock/class/entrepot.class.php';
 include_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+
+set_time_limit(0);
 
 if(!$user->rights->inventory->read) accessforbidden();
 
