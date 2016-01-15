@@ -130,21 +130,34 @@ class TInventory extends TObjetStd
     
 	function regulate(&$PDOdb)
 	{
-		global $db,$user,$langs;
+		global $db,$user,$langs,$conf;
+		
+		if($conf->global->INVENTORY_DISABLE_VIRTUAL){
+			$pdt_virtuel = false;
+			// Test si pdt virtuel est activé
+			if($conf->global->PRODUIT_SOUSPRODUITS)
+			{
+				$pdt_virtuel = true;
+				$conf->global->PRODUIT_SOUSPRODUITS = 0;
+			}
+		}
 		
 		foreach ($this->TInventorydet as $k => $TInventorydet)
 		{
 			$product = new Product($db);
 			$product->fetch($TInventorydet->fk_product);
 			
-			$product->load_stock();
+			/*
+			 * Ancien code qui était pourri et qui modifié la valeur du stock théorique si le parent était déstocké le même jour que l'enfant
+			 * 
+			 * $product->load_stock();
 			$TInventorydet->qty_stock = $product->stock_warehouse[$this->fk_warehouse]->real;
 			
 			if(date('Y-m-d', $this->date_inventory) < date('Y-m-d')) {
 				$TRes = $TInventorydet->getPmpStockFromDate($PDOdb, date('Y-m-d', $this->date_inventory), $this->fk_warehouse);
 				$TInventorydet->qty_stock = $TRes[1];
 			}
-			
+			*/
 			if ($TInventorydet->qty_view != $TInventorydet->qty_stock)
 			{
 				$TInventorydet->qty_regulated = $TInventorydet->qty_view - $TInventorydet->qty_stock;
@@ -158,6 +171,11 @@ class TInventory extends TObjetStd
 				else
 					$product->correct_stock($user, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStockWithNomInventaire', $href, $this->title));
 			}
+		}
+
+		if($conf->global->INVENTORY_DISABLE_VIRTUAL){
+			// Test si pdt virtuel était activé avant la régule
+			if($pdt_virtuel) $conf->global->PRODUIT_SOUSPRODUITS = 1;
 		}
 		
 		return 1;

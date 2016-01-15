@@ -102,7 +102,7 @@
     	<?php } 
         
         $total_pmp = $total_pa = $total_pmp_actual = $total_pa_actual = 0;
-        
+        $i=1;
         foreach ($TInventory as $k=>$row) { 
             
             $total_pmp+=$row['pmp_stock'];
@@ -110,7 +110,44 @@
             $total_pmp_actual+=$row['pmp_actual'];
             $total_pa_actual+=$row['pa_actual'];
             
+			if($i%20 === 0)
+			{
             ?>
+			<tr style="background-color:#dedede;">
+				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
+				<?php if (! empty($conf->barcode->enabled)) { ?>
+					<th align="center">Code-barre</td>
+				<?php } ?>
+				<?php if ($view['can_validate'] == 1) { ?>
+					<th align="center" width="20%">Quantité théorique</th>
+					<th align="center" width="20%" colspan="2">Valeur théorique</th>
+				<?php } ?>
+				    <th align="center" width="20%">Quantité réelle</th>
+				<?php if ($view['can_validate'] == 1) { ?>
+				    <th align="center" width="20%" colspan="2">Valeur réelle</th>	
+					<th align="center" width="15%">Quantité régulée</th>
+				<?php } ?>
+				<?php if ($view['is_already_validate'] != 1) { ?>
+					<th align="center" width="5%">#</th>
+				<?php } ?>
+			</tr>
+			<?php if ($view['can_validate'] == 1) { ?>
+	    	<tr style="background-color:#dedede;">
+	    	    <th colspan="<?php echo empty($conf->barcode->enabled) ? 2 : 3;  ?>">&nbsp;</th>
+	    	    <th>PMP</th>
+	    	    <th>Dernier PA</th>
+	    	    <th>&nbsp;</th>
+	    	    <th>PMP</th>
+	            <th>Dernier PA</th>
+	            <th>&nbsp;</th>
+	            <?php if ($view['is_already_validate'] != 1) { ?>
+	            <th>&nbsp;</th>
+	            <?php } ?>
+	    	</tr>
+	    	<?php 
+				} 
+			} // Fin IF principal
+	    	?>
 			<tr style="background-color:<?php echo ($k%2 == 0) ? '#fff':'#eee'; ?>;">
 				<td align="left">&nbsp;&nbsp;<?php echo $row['produit']; ?></td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
@@ -133,6 +170,7 @@
 					<td align="center" width="20%"><?php echo $row['action']; ?></td>
 				<?php } ?>
 			</tr>
+			<?php $i++; ?>
 		
 		<?php } ?>
 	

@@ -5,3 +5,5 @@ ATMAbout = This module has been developed by <a href="http://www.atm-consulting.
 
 inventorySetup = inventory module setup
 inventoryAbout = About inventory
+
+INVENTORY_DISABLE_VIRTUAL=Usefull if you don't want to unstock children product from virtual product in inventory
