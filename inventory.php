@@ -255,6 +255,18 @@ function _action()
 			generateODT($PDOdb, $db, $conf, $langs, $inventory);
 			break;
 			
+		case 'exportCSV':
+			$PDOdb = new TPDOdb;
+			$id = __get('id', 0, 'int');
+			
+			$inventory = new TInventory;
+			$inventory->load($PDOdb, $id);
+			
+			exportCSV($inventory);
+			
+			exit;
+			break;
+			
 		default:
 			//Rien
 			break;
@@ -471,6 +483,49 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		);
 	}
 	
+}
+
+function exportCSV(&$inventory) {
+	
+	header('Content-Type: application/octet-stream');
+    header('Content-disposition: attachment; filename=inventory-'. $inventory->getId().'-'.date('Ymd-His').'.csv');
+    header('Pragma: no-cache');
+    header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
+    header('Expires: 0');
+	
+	echo 'Ref;Label;barcode;qty theorique;PMP;dernier PA;qty réelle;PMP;PA;qty regulée;'."\r\n";
+	
+	foreach ($inventory->TInventorydet as $k => $TInventorydet)
+	{
+		$product = & $TInventorydet->product;
+		$stock = $TInventorydet->qty_stock;
+	
+        $pmp = $TInventorydet->pmp;
+		$pmp_actual = $pmp * $stock;
+		$inventory->amount_actual+=$pmp_actual;
+
+        $last_pa = $TInventorydet->pa;
+        
+		$row=array(
+			'produit' => $product->ref
+			,'label'=>$product->label
+			,'barcode' => $product->barcode
+			,'qty_stock' => $stock
+			,'pmp_stock'=>round($pmp_actual,2)
+            ,'pa_stock'=>round($last_pa * $stock,2)
+            ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+			,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
+            ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
+            
+			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+			
+		);
+		
+		echo '"'.implode('";"', $row).'"'."\r\n";
+		
+	}
+	
+	exit;
 }
 
 function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory) 
