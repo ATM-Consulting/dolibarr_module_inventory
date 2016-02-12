@@ -14,7 +14,7 @@ class TInventory extends TObjetStd
 		$this->add_champs('status', 'type=entier;');
         $this->add_champs('date_inventory', 'type=date;');
         
-        $this->_init_vars('title');
+        $this->_init_vars();
         
 	    $this->start();
 		
@@ -206,7 +206,8 @@ class TInventorydet extends TObjetStd
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_inventory,fk_product,entity', 'type=entier;');
 		$this->add_champs('qty_view,qty_stock,qty_regulated,pmp,pa', 'type=float;');
-		
+
+		$this->_init_vars();
 	    $this->start();
 		
 		$this->entity = $conf->entity;
