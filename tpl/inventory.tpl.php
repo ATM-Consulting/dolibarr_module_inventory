@@ -68,40 +68,11 @@
 	<input type="hidden" name="id" value="<?php echo $inventoryTPL['id']; ?>" />
 	
 	<table width="100%" class="border workstation">
-		<tr style="background-color:#dedede;">
-			<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
-			<?php if (! empty($conf->barcode->enabled)) { ?>
-				<th align="center">Code-barre</td>
-			<?php } ?>
-			<?php if ($view['can_validate'] == 1) { ?>
-				<th align="center" width="20%">Quantité théorique</th>
-				<th align="center" width="20%" colspan="2">Valeur théorique</th>
-			<?php } ?>
-			    <th align="center" width="20%">Quantité réelle</th>
-			<?php if ($view['can_validate'] == 1) { ?>
-			    <th align="center" width="20%" colspan="2">Valeur réelle</th>	
-				<th align="center" width="15%">Quantité régulée</th>
-			<?php } ?>
-			<?php if ($view['is_already_validate'] != 1) { ?>
-				<th align="center" width="5%">#</th>
-			<?php } ?>
-		</tr>
-		<?php if ($view['can_validate'] == 1) { ?>
-    	<tr style="background-color:#dedede;">
-    	    <th colspan="<?php echo empty($conf->barcode->enabled) ? 2 : 3;  ?>">&nbsp;</th>
-    	    <th>PMP</th>
-    	    <th>Dernier PA</th>
-    	    <th>&nbsp;</th>
-    	    <th>PMP</th>
-            <th>Dernier PA</th>
-            <th>&nbsp;</th>
-            <?php if ($view['is_already_validate'] != 1) { ?>
-            <th>&nbsp;</th>
-            <?php } ?>
-    	</tr>
-    	<?php } 
+		<?php
+		
+		_headerList($view); 
         
-        $total_pmp = $total_pa = $total_pmp_actual = $total_pa_actual = 0;
+        $total_pmp = $total_pa = $total_pmp_actual = $total_pa_actual =$total_current_pa=$total_current_pa_actual = 0;
         $i=1;
         foreach ($TInventory as $k=>$row) { 
             
@@ -112,40 +83,7 @@
             
 			if($i%20 === 0)
 			{
-            ?>
-			<tr style="background-color:#dedede;">
-				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
-				<?php if (! empty($conf->barcode->enabled)) { ?>
-					<th align="center">Code-barre</td>
-				<?php } ?>
-				<?php if ($view['can_validate'] == 1) { ?>
-					<th align="center" width="20%">Quantité théorique</th>
-					<th align="center" width="20%" colspan="2">Valeur théorique</th>
-				<?php } ?>
-				    <th align="center" width="20%">Quantité réelle</th>
-				<?php if ($view['can_validate'] == 1) { ?>
-				    <th align="center" width="20%" colspan="2">Valeur réelle</th>	
-					<th align="center" width="15%">Quantité régulée</th>
-				<?php } ?>
-				<?php if ($view['is_already_validate'] != 1) { ?>
-					<th align="center" width="5%">#</th>
-				<?php } ?>
-			</tr>
-			<?php if ($view['can_validate'] == 1) { ?>
-	    	<tr style="background-color:#dedede;">
-	    	    <th colspan="<?php echo empty($conf->barcode->enabled) ? 2 : 3;  ?>">&nbsp;</th>
-	    	    <th>PMP</th>
-	    	    <th>Dernier PA</th>
-	    	    <th>&nbsp;</th>
-	    	    <th>PMP</th>
-	            <th>Dernier PA</th>
-	            <th>&nbsp;</th>
-	            <?php if ($view['is_already_validate'] != 1) { ?>
-	            <th>&nbsp;</th>
-	            <?php } ?>
-	    	</tr>
-	    	<?php 
-				} 
+            	_headerList($view);
 			} // Fin IF principal
 	    	?>
 			<tr style="background-color:<?php echo ($k%2 == 0) ? '#fff':'#eee'; ?>;">
@@ -157,6 +95,13 @@
 					<td align="center" style="background-color: #e8e8ff;"><?php echo $row['qty_stock']; ?></td>
 					<td align="right" style="background-color: #e8e8ff;"><?php echo price( $row['pmp_stock']); ?></td>
 					<td align="right" style="background-color: #e8e8ff;"><?php echo price( $row['pa_stock']); ?></td>
+	               <?php
+	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
+	                 	echo '<td align="right">'.price($row['current_pa_stock']).'</td>';
+						 $total_current_pa+=$row['current_pa_stock'];
+	                 }   
+	                    
+	               ?>
 				<?php } ?>
 				<td align="center"><?php echo $row['qty']; ?>&nbsp;&nbsp;<span id="qty_view_<?php echo $row['k']; ?>"><?php echo $row['qty_view']; ?></span>
                     <input type="hidden" name="det_id_<?php echo $row['k']; ?>" value="<?php echo $row['id']; ?>" /> 
@@ -164,6 +109,13 @@
                 <?php if ($view['can_validate'] == 1) { ?>
                     <td align="right"><?php echo price($row['pmp_actual']); ?></td>
                     <td align="right"><?php echo price($row['pa_actual']); ?></td>
+               <?php
+                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
+                 	echo '<td align="right">'.price($row['current_pa_actual']).'</td>';
+					 $total_current_pa_actual+=$row['current_pa_actual'];
+                 }   
+                    
+               ?>
                     <td align="center"><?php echo $row['qty_regulated']; ?></td>
 				<?php } ?>
 				<?php if ($view['is_already_validate'] != 1) { ?>
@@ -172,23 +124,11 @@
 			</tr>
 			<?php $i++; ?>
 		
-		<?php } ?>
+		<?php } 
+		
+		_footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actual, $total_current_pa,$total_current_pa_actual);
+		?>
 	
-	    <?php if ($view['can_validate'] == 1) { ?>
-        <tr style="background-color:#dedede;">
-            <th colspan="2">&nbsp;</th>
-            <th align="right"><?php echo price($total_pmp) ?></th>
-            <th align="right"><?php echo price($total_pa) ?></th>
-            <th>&nbsp;</th>
-            <th align="right"><?php echo price($total_pmp_actual) ?></th>
-            <th align="right"><?php echo price($total_pa_actual) ?></th>
-            <th>&nbsp;</th>
-            <?php if ($view['is_already_validate'] != 1) { ?>
-            <th>&nbsp;</th>
-            <?php } ?>
-        </tr>
-        <?php } ?>   
-	       
 	  
 		
 	</table>

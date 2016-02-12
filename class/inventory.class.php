@@ -8,7 +8,7 @@ class TInventory extends TObjetStd
 	{
 		global $conf;
 		
-		$this->set_table(MAIN_DB_PREFIX.'inventory');
+		$this->set_table( MAIN_DB_PREFIX.'inventory' );
     	 
 		$this->add_champs('fk_warehouse,entity,status',array('type'=>'integer','index'=>true));
 		$this->add_champs('date_inventory',array(''=>'date'));
@@ -215,14 +215,38 @@ class TInventorydet extends TObjetStd
 		
 		$this->product = null;
 		
+		$this->current_pa = 0;
+		
 	}
 	
 	function load(&$PDOdb, $id) 
 	{
+		global $conf;
+		
 		$res = parent::load($PDOdb, $id);
 		$this->load_product();
-        
-        return $res;
+        $this->fetch_current_pa();
+			
+		return $res;
+	}
+	
+	function fetch_current_pa() {
+		global $db,$conf;
+		
+		if(empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) return false;
+		
+		if($this->pa>0){ 
+			$this->current_pa = $this->pa;
+		}
+		else {
+			
+			dol_include_once('/fourn/class/fournisseur.product.class.php');
+			$p= new ProductFournisseur($db);
+			$p->find_min_price_product_fournisseur($this->fk_product);
+			
+			$this->current_pa = $p->fourn_price / $p->fourn_qty;
+		}
+		return true;
 	}
 	
     function setStockDate(&$PDOdb, $date, $fk_warehouse) {

@@ -464,6 +464,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		$inventory->amount_actual+=$pmp_actual;
 
         $last_pa = $TInventorydet->pa;
+		$current_pa = $TInventorydet->current_pa;
         
 		$TInventory[]=array(
 			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
@@ -478,6 +479,9 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
             ,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
             ,'pa_stock'=>round($last_pa * $stock,2)
             ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
+			,'current_pa_stock'=>round($current_pa * $stock,2)
+			,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
+          
             ,'k'=>$k
             ,'id'=>$TInventorydet->getId()
 		);
@@ -486,6 +490,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 }
 
 function exportCSV(&$inventory) {
+	global $conf;
 	
 	header('Content-Type: application/octet-stream');
     header('Content-disposition: attachment; filename=inventory-'. $inventory->getId().'-'.date('Ymd-His').'.csv');
@@ -493,7 +498,11 @@ function exportCSV(&$inventory) {
     header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
     header('Expires: 0');
 	
-	echo 'Ref;Label;barcode;qty theorique;PMP;dernier PA;qty réelle;PMP;PA;qty regulée;'."\r\n";
+	echo 'Ref;Label;barcode;qty theorique;PMP;dernier PA;';
+	if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) echo 'PA courant;';
+	echo 'qty réelle;PMP;dernier PA;';
+	if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) echo 'PA courant;';
+	echo 'qty regulée;'."\r\n";
 	
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
 	{
@@ -505,21 +514,44 @@ function exportCSV(&$inventory) {
 		$inventory->amount_actual+=$pmp_actual;
 
         $last_pa = $TInventorydet->pa;
-        
-		$row=array(
-			'produit' => $product->ref
-			,'label'=>$product->label
-			,'barcode' => $product->barcode
-			,'qty_stock' => $stock
-			,'pmp_stock'=>round($pmp_actual,2)
-            ,'pa_stock'=>round($last_pa * $stock,2)
-            ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
-			,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
-            ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
-            
-			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+        $current_pa = $TInventorydet->current_pa;
+		
+		if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) {
+			$row=array(
+				'produit' => $product->ref
+				,'label'=>$product->label
+				,'barcode' => $product->barcode
+				,'qty_stock' => $stock
+				,'pmp_stock'=>round($pmp_actual,2)
+	            ,'pa_stock'=>round($last_pa * $stock,2)
+				,'current_pa_stock'=>round($current_pa * $stock,2)
+			    ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+				,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
+	            ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
+	        	,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)    
+				,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+				
+			);
 			
+		}
+		else{
+			$row=array(
+				'produit' => $product->ref
+				,'label'=>$product->label
+				,'barcode' => $product->barcode
+				,'qty_stock' => $stock
+				,'pmp_stock'=>round($pmp_actual,2)
+	            ,'pa_stock'=>round($last_pa * $stock,2)
+	            ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+				,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
+	            ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
+	            
+				,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+				
 		);
+			
+		}
+		
 		
 		echo '"'.implode('";"', $row).'"'."\r\n";
 		
@@ -597,4 +629,108 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
     
 	//header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$dirName."/".$assetOf->numero.".doc");
 
+}
+function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actual, $total_current_pa,$total_current_pa_actual) {
+	global $conf;
+	
+	
+	    if ($view['can_validate'] == 1) { ?>
+        <tr style="background-color:#dedede;">
+            <th colspan="2">&nbsp;</th>
+            <?php if (! empty($conf->barcode->enabled)) { ?>
+					<th align="center">&nbsp;</td>
+			<?php } ?>
+            <th align="right"><?php echo price($total_pmp) ?></th>
+            <th align="right"><?php echo price($total_pa) ?></th>
+            <?php
+	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
+	              		echo '<th align="right">'.price($total_current_pa).'</th>';   	
+					 }
+			?>
+            <th>&nbsp;</th>
+            <th align="right"><?php echo price($total_pmp_actual) ?></th>
+            <th align="right"><?php echo price($total_pa_actual) ?></th>
+            <?php
+	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
+	              		echo '<th align="right">'.price($total_current_pa_actual).'</th>';   	
+					 }
+			?>
+
+            <th>&nbsp;</th>
+            <?php if ($view['is_already_validate'] != 1) { ?>
+            <th>&nbsp;</th>
+            <?php } ?>
+        </tr>
+        <?php } 
+}
+function _headerList($view) {
+	global $conf;
+	
+	?>
+			<tr style="background-color:#dedede;">
+				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
+				<?php if (! empty($conf->barcode->enabled)) { ?>
+					<th align="center">Code-barre</td>
+				<?php } ?>
+				<?php if ($view['can_validate'] == 1) { ?>
+					<th align="center" width="20%">Quantité théorique</th>
+					<?php
+	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
+	              		echo '<th align="center" width="20%" colspan="3">Valeur théorique</th>';   	
+					 }
+					 else {
+					 	echo '<th align="center" width="20%" colspan="2">Valeur théorique</th>';
+					 }
+					 
+					?>
+					
+				<?php } ?>
+				    <th align="center" width="20%">Quantité réelle</th>
+				<?php if ($view['can_validate'] == 1) { ?>
+				    
+				    <?php
+				    
+	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
+	              		echo '<th align="center" width="20%" colspan="3">Valeur réelle</th>';   	
+					 }
+					 else {
+					 	echo '<th align="center" width="20%" colspan="2">Valeur réelle</th>';
+					 }
+					 
+					?>
+						
+					<th align="center" width="15%">Quantité régulée</th>
+				<?php } ?>
+				<?php if ($view['is_already_validate'] != 1) { ?>
+					<th align="center" width="5%">#</th>
+				<?php } ?>
+			</tr>
+			<?php if ($view['can_validate'] == 1) { ?>
+	    	<tr style="background-color:#dedede;">
+	    	    <th colspan="<?php echo empty($conf->barcode->enabled) ? 2 : 3;  ?>">&nbsp;</th>
+	    	    <th>PMP</th>
+	    	    <th>Dernier PA</th>
+	    	    <?php
+	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
+	              		echo '<th>PA courant</th>';   	
+					 }
+					 
+				?>
+	    	    <th>&nbsp;</th>
+	    	    <th>PMP</th>
+	            <th>Dernier PA</th>
+	            <?php
+	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
+	              		echo '<th>PA courant</th>';   	
+					 }
+					 
+				?>
+	            <th>&nbsp;</th>
+	            <?php if ($view['is_already_validate'] != 1) { ?>
+	            <th>&nbsp;</th>
+	            <?php } ?>
+	    	</tr>
+	    	<?php 
+	} 
+	
 }
