@@ -11,7 +11,7 @@ class TInventory extends TObjetStd
 		$this->set_table( MAIN_DB_PREFIX.'inventory' );
     	 
 		$this->add_champs('fk_warehouse,entity,status',array('type'=>'integer','index'=>true));
-		$this->add_champs('date_inventory',array(''=>'date'));
+		$this->add_champs('date_inventory',array('type'=>'date'));
         $this->add_champs('title');
         
         $this->_init_vars();

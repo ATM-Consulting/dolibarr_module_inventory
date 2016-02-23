@@ -415,9 +415,9 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 	$TBS->TBS->noerr=true;
 	
 	//set_time_limit(10);
-	//var_dump($TInventory);exit;	
+	//var_dump($inventory);exit;	
 	
-	print '<b>'.$langs->trans('inventoryOnDate')." ".$inventory->get_date('date_inventory').'</b><br><br>';
+	print '<b>'.$langs->trans('inventoryOnDate')." ".$inventory->get_date('date_inventory', 'd/m/Y').'</b><br><br>';
 	
 	$inventoryTPL = array(
 		'id'=> $inventory->getId()
