@@ -157,6 +157,7 @@
 		<div class="tabsAction">
 			<?php if ($view['can_validate'] == 1) { ?>
 				<a href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=printDoc" class="butAction">Imprimer</a>
+				<a href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=exportCSV" class="butAction">Export CSV</a>
 				<!-- <a onclick="if (!confirm('Confirmez-vous la suppression ?')) return false;" href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=delete" class="butActionDelete">Supprimer</a> -->
 				<a href="#" title="Cet inventaire est validé" class="butActionRefused">Supprimer</a>
 			<?php } ?>
