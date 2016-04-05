@@ -32,3 +32,4 @@ SelectCategory=Choix du filtre de catégorie
 inventoryOnDate=Inventaire au  
 INVENTORY_DISABLE_VIRTUAL=Permet de ne pas déstocker les produits enfants des produits virtualisés lors de l'inventaire
 INVENTORY_USE_MIN_PA_IF_NO_LAST_PA=Donner la valorisation avec le prix d'achat courrant sur dernier PA nul
+INVENTORY_USE_INVENTORY_DATE_FROM_DATEMVT=Dater les mouvements d'inventaire à date de l'inventaire

@@ -128,6 +128,41 @@ class TInventory extends TObjetStd
         
     }
     
+    function correct_stock($fk_product, $id_entrepot, $nbpiece, $movement, $label='', $price=0, $inventorycode='')
+	{
+		global $conf, $db, $langs, $user;
+		
+		/* duplication method product to add datem */
+		if ($id_entrepot)
+		{
+			$db->begin();
+
+			require_once DOL_DOCUMENT_ROOT .'/product/stock/class/mouvementstock.class.php';
+
+			$op[0] = "+".trim($nbpiece);
+			$op[1] = "-".trim($nbpiece);
+
+			$datem = empty($conf->global->INVENTORY_USE_INVENTORY_DATE_FROM_DATEMVT) ? dol_now() : $this->date_inventory;
+
+			$movementstock=new MouvementStock($db);
+			$result=$movementstock->_create($user,$fk_product,$id_entrepot,$op[$movement],$movement,$price,$label,$inventorycode, $datem);
+			
+			if ($result >= 0)
+			{
+				$db->commit();
+				return 1;
+			}
+			else
+			{
+			    $this->error=$movementstock->error;
+			    $this->errors=$movementstock->errors;
+
+				$db->rollback();
+				return -1;
+			}
+		}
+	}
+	
 	function regulate(&$PDOdb)
 	{
 		global $db,$user,$langs,$conf;
@@ -167,9 +202,9 @@ class TInventory extends TObjetStd
 				$href = dol_buildpath('/inventory/inventory.php?id='.$this->getId().'&action=view', 1);
 				
 				if(empty($this->title))
-					$product->correct_stock($user, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
+					$this->correct_stock($product->id, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
 				else
-					$product->correct_stock($user, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStockWithNomInventaire', $href, $this->title));
+					$this->correct_stock($product->id, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStockWithNomInventaire', $href, $this->title));
 			}
 		}
 
@@ -244,7 +279,7 @@ class TInventorydet extends TObjetStd
 			$p= new ProductFournisseur($db);
 			$p->find_min_price_product_fournisseur($this->fk_product);
 			
-			$this->current_pa = $p->fourn_price / $p->fourn_qty;
+			if($p->fourn_qty>0)	$this->current_pa = $p->fourn_price / $p->fourn_qty;
 		}
 		return true;
 	}
