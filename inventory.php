@@ -60,15 +60,18 @@ function _action()
 			
             $fk_inventory = $inventory->save($PDOdb);
             $fk_category = (int)GETPOST('fk_category');
+            $fk_supplier = (int)GETPOST('fk_supplier');
             $fk_warehouse = (int)GETPOST('fk_warehouse');
             
 			$sql = 'SELECT DISTINCT ps.fk_product 
 			     FROM '.MAIN_DB_PREFIX.'product_stock ps 
 			     INNER JOIN '.MAIN_DB_PREFIX.'product p ON (p.rowid = ps.fk_product) 
                  LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)
+				 LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)
 			     WHERE ps.fk_entrepot = '.$fk_warehouse;
                  
             if($fk_category>0) $sql.= " AND cp.fk_categorie=".$fk_category;
+			if($fk_supplier>0) $sql.= " AND pfp.fk_soc=".$fk_supplier;
 			     
 			$sql.=' ORDER BY p.ref ASC,p.label ASC';
                  
@@ -382,6 +385,10 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
         <tr>
             <td><?php echo $langs->trans('SelectCategory') ?></td>
             <td><?php echo $formDoli->select_all_categories(0,'', 'fk_category') ?></td> 
+        </tr>
+        <tr>
+            <td><?php echo $langs->trans('SelectFournisseur') ?></td>
+            <td><?php echo $formDoli->select_thirdparty('','fk_supplier','s.fournisseur = 1') ?></td> 
         </tr>
         
     </table>
