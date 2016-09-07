@@ -62,7 +62,33 @@ class TInventory extends TObjetStd
 		return $r;
 	}
 	
-	function save($PDOdb)
+	function changePMP(&$PDOdb) {
+		
+		foreach ($this->TInventorydet as $k => &$TInventorydet)
+		{
+			
+			if($TInventorydet->new_pmp>0) {
+				$TInventorydet->pmp = $TInventorydet->new_pmp; 
+				$TInventorydet->new_pmp = 0;
+			
+				$PDOdb->Execute("UPDATE ".MAIN_DB_PREFIX."product as p SET pmp = ".$TInventorydet->pmp."
+				WHERE rowid = ".$TInventorydet->fk_product );
+				
+				if((float)DOL_VERSION<4.0) {
+					
+					$PDOdb->Execute("UPDATE ".MAIN_DB_PREFIX."product_stock SET pmp=".$TInventorydet->pmp."
+					 WHERE fk_entrepot = ".$this->fk_warehouse." AND fk_product = ".$TInventorydet->fk_product) ;
+					
+				}
+				
+			}
+		}
+		
+		parent::save($PDOdb);
+		
+	}
+	
+	function save(&$PDOdb)
 	{
 		//si on valide l'inventaire on sauvegarde le stock à cette instant
 		if ($this->status)
@@ -240,7 +266,7 @@ class TInventorydet extends TObjetStd
 		$this->set_table(MAIN_DB_PREFIX.'inventorydet');
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_inventory,fk_product,entity', 'type=entier;');
-		$this->add_champs('qty_view,qty_stock,qty_regulated,pmp,pa', 'type=float;');
+		$this->add_champs('qty_view,qty_stock,qty_regulated,pmp,pa,new_pmp', 'type=float;');
 
 		$this->_init_vars();
 	    $this->start();
@@ -315,8 +341,17 @@ class TInventorydet extends TObjetStd
 		
 		$res = $this->product->load_stock();
 		
-		$stock = $res > 0 ? (float) $this->product->stock_warehouse[$fk_warehouse]->real : 0;
-        $pmp = $res > 0 ? (float) $this->product->stock_warehouse[$fk_warehouse]->pmp : 0;
+		if($res>0) {
+			$stock = isset($this->product->stock_warehouse[$fk_warehouse]->real) ? $this->product->stock_warehouse[$fk_warehouse]->real : 0;
+			
+			if((float)DOL_VERSION<4.0) {
+				$pmp = isset($this->product->stock_warehouse[$fk_warehouse]->pmp) ? $this->product->stock_warehouse[$fk_warehouse]->pmp : 0; 
+			}
+			else{
+				$pmp = $this->product->pmp;
+			}
+			
+		}
 		
 		//On récupère tous les mouvements de stocks du produit entre aujourd'hui et la date de l'inventaire
 		$sql = "SELECT value, price

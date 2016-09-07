@@ -146,6 +146,19 @@ function _action()
             
 			break;
 			
+		case 'changePMP':
+			$PDOdb = new TPDOdb;
+			$id = __get('id', 0, 'int');
+			
+			$inventory = new TInventory;
+			$inventory->load($PDOdb, $id);
+			
+			$inventory->changePMP($PDOdb);
+			
+			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'view');
+			
+			break;
+			
 		case 'add_line':
 			if (!$user->rights->inventory->write) accessforbidden();
 			
@@ -155,7 +168,7 @@ function _action()
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
 			
-			$type = (!empty($conf->use_javascript_ajax) && !empty($conf->global->PRODUIT_USE_SEARCH_TO_SELECT) ? 'string' : 'int');
+			$type = (!empty($conf->use_javascript_ajax) && !empty($conf->global->PRODUIT_USE_SEARCH_TO_SELECT) ? 'string' : 'int'); //AA heu ?
 			
 			$fk_product = __get('fk_product', 0, $type);
 			
@@ -483,7 +496,9 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
 			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
 			,'pmp_stock'=>round($pmp_actual,2)
-            ,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
+            ,'pmp_actual'=> round($pmp * $TInventorydet->qty_view,2)
+			,'pmp_new'=>(!empty($user->rights->inventory->changePMP) ?  $form->texte('', 'new_pmp['.$k.']',$TInventorydet->new_pmp, 8, 0, "style='text-align:right;'")
+                        .($form->type_aff!='view' ? '<a id="a_save_new_pmp_'.$k.'" href="javascript:save_pmp('.$k.')">'.img_picto($langs->trans('Save'), 'bt-save.png@inventory').'</a>' : '') : '' )
             ,'pa_stock'=>round($last_pa * $stock,2)
             ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
 			,'current_pa_stock'=>round($current_pa * $stock,2)
@@ -638,7 +653,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 
 }
 function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actual, $total_current_pa,$total_current_pa_actual) {
-	global $conf;
+	global $conf,$user,$langs;
 	
 	
 	    if ($view['can_validate'] == 1) { ?>
@@ -656,6 +671,11 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
 			?>
             <th>&nbsp;</th>
             <th align="right"><?php echo price($total_pmp_actual) ?></th>
+            <?php
+            if(!empty($user->rights->inventory->changePMP)) {
+               	echo '<th>&nbsp;</th>';	
+			}
+			?>
             <th align="right"><?php echo price($total_pa_actual) ?></th>
             <?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
@@ -671,7 +691,7 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <?php } 
 }
 function _headerList($view) {
-	global $conf;
+	global $conf,$user,$langs;
 	
 	?>
 			<tr style="background-color:#dedede;">
@@ -697,12 +717,11 @@ function _headerList($view) {
 				    
 				    <?php
 				    
-	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
-	              		echo '<th align="center" width="20%" colspan="3">Valeur réelle</th>';   	
-					 }
-					 else {
-					 	echo '<th align="center" width="20%" colspan="2">Valeur réelle</th>';
-					 }
+				     $colspan = 2;
+					 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) $colspan++;
+				     if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) $colspan++;
+					
+	                 echo '<th align="center" width="20%" colspan="'.$colspan.'">Valeur réelle</th>';
 					 
 					?>
 						
@@ -725,6 +744,11 @@ function _headerList($view) {
 				?>
 	    	    <th>&nbsp;</th>
 	    	    <th>PMP</th>
+	    	    <?php
+	    	    if(!empty($user->rights->inventory->changePMP)) {
+	    	    	echo '<th rel="newPMP">'.$langs->trans('ColumnNewPMP').'</th>';
+	    	    }
+	    	    ?>
 	            <th>Dernier PA</th>
 	            <?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){

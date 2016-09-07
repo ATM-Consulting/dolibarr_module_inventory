@@ -58,7 +58,7 @@ class modinventory extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module inventory";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.4.2';
+		$this->version = '1.5.0';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -183,27 +183,33 @@ class modinventory extends DolibarrModules
 		// $r++;
 		
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
-		$this->rights[$r][1] = $langs->trans('inventoryReadPermission');	// Permission label
+		$this->rights[$r][1] = 'inventoryReadPermission';	// Permission label
 		$this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
 		$this->rights[$r][4] = 'read';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
 		
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
-		$this->rights[$r][1] = $langs->trans('inventoryCreatePermission');	// Permission label
-		$this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
+		$this->rights[$r][1] = 'inventoryCreatePermission';	// Permission label
+		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
 		$this->rights[$r][4] = 'create';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
-		
+	
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
-		$this->rights[$r][1] = $langs->trans('inventoryWritePermission');	// Permission label
-		$this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
+		$this->rights[$r][1] = 'inventoryWritePermission';	// Permission label
+		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
 		$this->rights[$r][4] = 'write';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
 		
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
-		$this->rights[$r][1] = $langs->trans('inventoryValidatePermission');	// Permission label
-		$this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
+		$this->rights[$r][1] = 'inventoryValidatePermission';	// Permission label
+		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
 		$this->rights[$r][4] = 'validate';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+		$r++;
+
+		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
+		$this->rights[$r][1] = 'inventoryChangePMPPermission';	// Permission label
+		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
+		$this->rights[$r][4] = 'changePMP';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
 
 		// Main menu entries
