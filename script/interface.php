@@ -27,6 +27,24 @@
             }            
             
             break;
+			
+        case 'pmp':
+            if (!$user->rights->inventory->write || !$user->rights->inventory->changePMP) { echo -1; exit; }
+            
+            $fk_det_inventory = GETPOST('fk_det_inventory');
+            
+            $det = new TInventorydet;
+            if( $det->load($PDOdb, $fk_det_inventory)) {
+                $det->new_pmp=price2num(GETPOST('pmp'));
+                $det->save($PDOdb);
+                
+                echo $det->new_pmp;
+            }
+            else {
+                echo -2;
+            }            
+            
+            break;
         
     }
  

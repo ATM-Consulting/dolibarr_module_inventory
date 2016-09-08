@@ -28,6 +28,31 @@
         
     }
     
+    function save_pmp(k) {
+    	
+        var $input = $('input[name="new_pmp['+k+']"]');
+        var fk_det_inventory = $('input[name=det_id_'+k+']').val();
+        var pmp = $input.val();
+        
+        $('#a_save_new_pmp_'+k).hide();
+        
+        $.ajax({
+            url:"script/interface.php"
+            ,data:{
+                'fk_det_inventory' : fk_det_inventory
+                ,'pmp': pmp
+                ,'put':'pmp'
+            }
+            
+        }).done(function(data) {
+           	$input.css({"background-color":"#66ff66"});
+            $.jnotify("PMP sauvegardé : "+pmp, "mesgs" );
+            $('#a_save_new_pmp_'+k).show();
+             
+        });
+        
+    }
+    
     function hide_save_button() {
        var nb = 0;
        $('input[name^="qty_to_add"]').each(function() {
@@ -108,14 +133,19 @@
                 </td>
                 <?php if ($view['can_validate'] == 1) { ?>
                     <td align="right"><?php echo price($row['pmp_actual']); ?></td>
+                    <?php
+                    if(!empty($user->rights->inventory->changePMP)) {
+                    	echo '<td>'.$row['pmp_new'].'</td>';	
+					}
+                    ?>
                     <td align="right"><?php echo price($row['pa_actual']); ?></td>
-               <?php
-                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
-                 	echo '<td align="right">'.price($row['current_pa_actual']).'</td>';
-					 $total_current_pa_actual+=$row['current_pa_actual'];
-                 }   
-                    
-               ?>
+		               <?php
+		                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
+		                 	echo '<td align="right">'.price($row['current_pa_actual']).'</td>';
+							 $total_current_pa_actual+=$row['current_pa_actual'];
+		                 }   
+		                    
+		               ?>
                     <td align="center"><?php echo $row['qty_regulated']; ?></td>
 				<?php } ?>
 				<?php if ($view['is_already_validate'] != 1) { ?>
@@ -139,7 +169,14 @@
 				<a href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=printDoc" class="butAction">Imprimer</a>
 				<a href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=exportCSV" class="butAction">Export CSV</a>
 				<a href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=edit" class="butAction">Modifier</a>
-				<?php if ($view['can_validate'] == 1) { ?>
+				<?php 
+				 if(!empty($user->rights->inventory->changePMP)) {
+				 	echo '<a href="javascript:;" onclick="javascript:if (!confirm(\'Confirmez-vous l\\\'application du nouveau PMP ?\')) return false; else document.location.href=\''.$view['url']
+				 			.'?id='.$inventoryTPL['id']
+				 			.'&action=changePMP&token='.$view['token'].'\'; " class="butAction">Appliquer le PMP</a>';
+				 }
+				
+				if ($view['can_validate'] == 1) { ?>
 					<a href="javascript:;" onclick="javascript:if (!confirm('Confirmez-vous la régulation ?')) return false; else document.location.href='<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=regulate&token=<?php echo $view['token']; ?>'; " class="butAction">Réguler le stock</a>
 				<?php } ?>
 			<?php } ?>
