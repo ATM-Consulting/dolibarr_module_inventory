@@ -63,21 +63,24 @@ function _action()
             $fk_supplier = (int)GETPOST('fk_supplier');
             $fk_warehouse = (int)GETPOST('fk_warehouse');
 			$only_prods_in_stock = (int)GETPOST('OnlyProdsInStock');
+			$only_prods_geres_en_stock = (int)GETPOST('OnlyProdsGeresEnStock');
             
 			$sql = 'SELECT DISTINCT ps.fk_product 
 			     FROM '.MAIN_DB_PREFIX.'product_stock ps 
-			     INNER JOIN '.MAIN_DB_PREFIX.'product p ON (p.rowid = ps.fk_product) 
-                 LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)
+			     INNER JOIN '.MAIN_DB_PREFIX.'product p ON (p.rowid = ps.fk_product) ';
+			if($only_prods_geres_en_stock > 0) $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_extrafields pext ON (pext.fk_object = p.rowid) ';
+            $sql.= 'LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)
 				 LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)
 			     WHERE ps.fk_entrepot = '.$fk_warehouse;
                  
             if($fk_category>0) $sql.= " AND cp.fk_categorie=".$fk_category;
 			if($fk_supplier>0) $sql.= " AND pfp.fk_soc=".$fk_supplier;
 			if($only_prods_in_stock>0) $sql.= ' AND ps.reel > 0';
+			if($only_prods_geres_en_stock > 0) $sql.= ' AND pext.gere_en_stock=1 ';
 			
 			$sql.=' ORDER BY p.ref ASC,p.label ASC';
                  
-                 
+
 			$Tab = $PDOdb->ExecuteAsArray($sql);
 			
 			foreach($Tab as &$row) {
@@ -408,6 +411,10 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
         <tr>
             <td><?php echo $langs->trans('OnlyProdsInStock') ?></td>
             <td><input type="checkbox" name="OnlyProdsInStock" value="1"></td> 
+        </tr>
+        <tr>
+            <td><?php echo $langs->trans('OnlyProdsGeresEnStock') ?></td>
+            <td><input type="checkbox" name="OnlyProdsGeresEnStock" value="1"></td> 
         </tr>
         
     </table>
