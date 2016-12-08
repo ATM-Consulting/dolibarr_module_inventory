@@ -64,25 +64,31 @@ function _action()
             $fk_warehouse = (int)GETPOST('fk_warehouse');
 			$only_prods_in_stock = (int)GETPOST('OnlyProdsInStock');
             
-			$sql = 'SELECT DISTINCT ps.fk_product 
+			$e = new Entrepot($db);
+			$e->fetch($fk_warehouse);
+			$TChildWarehouses = array($fk_warehouse);
+			$e->get_children_warehouses($fk_warehouse, $TChildWarehouses);
+			
+			$sql = 'SELECT ps.fk_product, ps.fk_entrepot 
 			     FROM '.MAIN_DB_PREFIX.'product_stock ps 
 			     INNER JOIN '.MAIN_DB_PREFIX.'product p ON (p.rowid = ps.fk_product) 
                  LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)
 				 LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)
-			     WHERE ps.fk_entrepot = '.$fk_warehouse;
-                 
+			     WHERE ps.fk_entrepot IN ('.implode(', ', $TChildWarehouses).')';
+			
             if($fk_category>0) $sql.= " AND cp.fk_categorie=".$fk_category;
 			if($fk_supplier>0) $sql.= " AND pfp.fk_soc=".$fk_supplier;
 			if($only_prods_in_stock>0) $sql.= ' AND ps.reel > 0';
 			
-			$sql.=' ORDER BY p.ref ASC,p.label ASC';
+			$sql.=' GROUP BY ps.fk_product, ps.fk_entrepot
+					ORDER BY p.ref ASC,p.label ASC';
                  
                  
 			$Tab = $PDOdb->ExecuteAsArray($sql);
 			
 			foreach($Tab as &$row) {
 			
-                $inventory->add_product($PDOdb, $row->fk_product);
+                $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot);
 			}
 			
 			$inventory->save($PDOdb);
@@ -477,6 +483,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 {
+	global $db;
 	$inventory->amount_actual = 0;
 	
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
@@ -492,8 +499,12 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
         $last_pa = $TInventorydet->pa;
 		$current_pa = $TInventorydet->current_pa;
         
+		$e = new Entrepot($db);
+		$e->fetch($TInventorydet->fk_warehouse);
+		
 		$TInventory[]=array(
 			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
+			,'entrepot'=>$e->getNomUrl(1)
 			,'barcode' => $product->barcode
 			,'qty' => $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
                         .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
@@ -703,6 +714,7 @@ function _headerList($view) {
 			<tr style="background-color:#dedede;">
 				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
+					<th align="center">Entrepôt</td>
 					<th align="center">Code-barre</td>
 				<?php } ?>
 				<?php if ($view['can_validate'] == 1) { ?>

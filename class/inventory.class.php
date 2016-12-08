@@ -138,13 +138,14 @@ class TInventory extends TObjetStd
         
     }
     
-    function add_product(&$PDOdb, $fk_product) {
+    function add_product(&$PDOdb, $fk_product, $fk_entrepot) {
         
         $k = $this->addChild($PDOdb, 'TInventorydet');
         $det =  &$this->TInventorydet[$k];
         
         $det->fk_inventory = $this->getId();
-        $det->fk_product =$fk_product;
+        $det->fk_product = $fk_product;
+		$det->fk_warehouse = $fk_entrepot;
         
         $det->load_product();
                 
@@ -228,9 +229,9 @@ class TInventory extends TObjetStd
 				$href = dol_buildpath('/inventory/inventory.php?id='.$this->getId().'&action=view', 1);
 				
 				if(empty($this->title))
-					$this->correct_stock($product->id, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
+					$this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
 				else
-					$this->correct_stock($product->id, $this->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStockWithNomInventaire', $href, $this->title));
+					$this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStockWithNomInventaire', $href, $this->title));
 			}
 		}
 
@@ -265,7 +266,7 @@ class TInventorydet extends TObjetStd
 		
 		$this->set_table(MAIN_DB_PREFIX.'inventorydet');
     	$this->TChamps = array(); 	  
-		$this->add_champs('fk_inventory,fk_product,entity', 'type=entier;');
+		$this->add_champs('fk_inventory,fk_warehouse,fk_product,entity', 'type=entier;');
 		$this->add_champs('qty_view,qty_stock,qty_regulated,pmp,pa,new_pmp', 'type=float;');
 
 		$this->_init_vars();
