@@ -113,6 +113,7 @@
 	    	?>
 			<tr style="background-color:<?php echo ($k%2 == 0) ? '#fff':'#eee'; ?>;">
 				<td align="left">&nbsp;&nbsp;<?php echo $row['produit']; ?></td>
+				<td align="center"><?php echo $row['entrepot']; ?></td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<td align="center"><?php echo $row['barcode']; ?></td>
 				<?php } ?>
