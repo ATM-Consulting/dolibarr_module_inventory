@@ -714,8 +714,8 @@ function _headerList($view) {
 	?>
 			<tr style="background-color:#dedede;">
 				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
+				<th align="center">Entrepôt</td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
-					<th align="center">Entrepôt</td>
 					<th align="center">Code-barre</td>
 				<?php } ?>
 				<?php if ($view['can_validate'] == 1) { ?>
