@@ -490,7 +490,6 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 	{
 	    
         $product = & $TInventorydet->product;
-		$product->load_stock();
 		$stock = $TInventorydet->qty_stock;
 	
         $pmp = $TInventorydet->pmp;
