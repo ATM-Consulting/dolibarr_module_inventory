@@ -749,6 +749,7 @@ function _headerList($view) {
 				<?php if ($view['is_already_validate'] != 1) { ?>
 					<th align="center" width="5%">#</th>
 				<?php } ?>
+				<th align="center" width="5%"></th>
 			</tr>
 			<?php if ($view['can_validate'] == 1) { ?>
 	    	<tr style="background-color:#dedede;">
