@@ -491,7 +491,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 	    
         $product = & $TInventorydet->product;
 		$product->load_stock();
-		$stock = $product->stock_warehouse[$TInventorydet->fk_warehouse]->real;
+		$stock = $TInventorydet->qty_stock;
 	
         $pmp = $TInventorydet->pmp;
 		$pmp_actual = $pmp * $stock;
