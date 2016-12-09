@@ -12,6 +12,7 @@ include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 include_once DOL_DOCUMENT_ROOT.'/product/stock/class/entrepot.class.php';
 include_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+dol_include_once('/hevea/class/hevea_tools.class.php');
 
 set_time_limit(0);
 
@@ -517,6 +518,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		$TInventory[]=array(
 			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
 			,'entrepot'=>$e->getNomUrl(1)
+			,'entrepot_name'=>$e->libelle
 			,'barcode' => $product->barcode
 			,'qty' => $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
                         .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
@@ -537,6 +539,11 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
             ,'id'=>$TInventorydet->getId()
 		);
 	}
+	
+	$object = new stdClass;
+	$object->lines = &$TInventory;
+	$hevea_tools = new HeveaTools($db);
+	$hevea_tools->reorderObjectLines($object, false);
 	
 }
 
