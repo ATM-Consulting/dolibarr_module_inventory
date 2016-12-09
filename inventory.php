@@ -493,6 +493,8 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 	global $db;
 	$inventory->amount_actual = 0;
 	
+	$TCacheEntrepot = array();
+	
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
 	{
 	    
@@ -507,7 +509,8 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		$current_pa = $TInventorydet->current_pa;
         
 		$e = new Entrepot($db);
-		$e->fetch($TInventorydet->fk_warehouse);
+		if(!empty($TCacheEntrepot[$TInventorydet->fk_warehouse])) $e = $TCacheEntrepot[$TInventorydet->fk_warehouse];
+		elseif($e->fetch($TInventorydet->fk_warehouse) > 0) $TCacheEntrepot[$e->id] = $e;
 		
 		$TInventory[]=array(
 			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
