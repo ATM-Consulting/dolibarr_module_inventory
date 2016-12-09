@@ -151,7 +151,7 @@ class TInventory extends TObjetStd
                 
         $date = $this->get_date('date_inventory', 'Y-m-d');
         if(empty($date))$date = $this->get_date('date_cre', 'Y-m-d'); 
-        $det->setStockDate($PDOdb, $date , $this->fk_warehouse);
+        $det->setStockDate($PDOdb, $date , $fk_warehouse);
         
     }
     

@@ -67,7 +67,7 @@ function _action()
 			$e = new Entrepot($db);
 			$e->fetch($fk_warehouse);
 			$TChildWarehouses = array($fk_warehouse);
-			$e->get_children_warehouses($fk_warehouse, $TChildWarehouses);
+			if(method_exists($e, 'get_children_warehouses')) $e->get_children_warehouses($fk_warehouse, $TChildWarehouses);
 			
 			$sql = 'SELECT ps.fk_product, ps.fk_entrepot 
 			     FROM '.MAIN_DB_PREFIX.'product_stock ps 
@@ -490,7 +490,8 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 	{
 	    
         $product = & $TInventorydet->product;
-		$stock = $TInventorydet->qty_stock;
+		$product->load_stock();
+		$stock = $product->stock_warehouse[$TInventorydet->fk_warehouse]->real;
 	
         $pmp = $TInventorydet->pmp;
 		$pmp_actual = $pmp * $stock;
@@ -675,7 +676,7 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
 	
 	    if ($view['can_validate'] == 1) { ?>
         <tr style="background-color:#dedede;">
-            <th colspan="2">&nbsp;</th>
+            <th colspan="3">&nbsp;</th>
             <?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">&nbsp;</td>
 			<?php } ?>
