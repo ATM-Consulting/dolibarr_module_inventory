@@ -138,14 +138,14 @@ class TInventory extends TObjetStd
         
     }
     
-    function add_product(&$PDOdb, $fk_product, $fk_entrepot) {
+    function add_product(&$PDOdb, $fk_product, $fk_entrepot='') {
         
         $k = $this->addChild($PDOdb, 'TInventorydet');
         $det =  &$this->TInventorydet[$k];
         
         $det->fk_inventory = $this->getId();
         $det->fk_product = $fk_product;
-		$det->fk_warehouse = $fk_entrepot;
+		$det->fk_warehouse = empty($fk_entrepot) ? $this->fk_warehouse : $fk_entrepot;
         
         $det->load_product();
                 
