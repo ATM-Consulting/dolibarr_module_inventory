@@ -172,6 +172,7 @@ function _action()
 			
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
+			$fk_warehouse = __get('fk_warehouse', 0, 'int');
 			
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
@@ -193,7 +194,8 @@ function _action()
 					$alreadyExists = false;
 					foreach ($inventory->TInventorydet as $invdet)
 					{
-						if ($invdet->fk_product == $product->id)
+						if ($invdet->fk_product == $product->id
+							&& $invdet->fk_warehouse == $fk_warehouse)
 						{
 							$alreadyExists = true;
 							break;
@@ -202,7 +204,7 @@ function _action()
 					
 					if (!$alreadyExists)
 					{
-					    $inventory->add_product($PDOdb, $product->id);
+					    $inventory->add_product($PDOdb, $product->id, $fk_warehouse);
                         
 					}
 					else
