@@ -15,6 +15,7 @@ include_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 dol_include_once('/hevea/class/hevea_tools.class.php');
 
 set_time_limit(0);
+$dol_version = (float) DOL_VERSION;
 
 if(!$user->rights->inventory->read) accessforbidden();
 
@@ -325,6 +326,8 @@ function _liste(&$user, &$db, &$conf, &$langs)
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'POST');
 
 	$ATMdb=new TPDOdb;
+	$lien = '/product/stock/card.php';
+	if($dol_version < 3.8) $lien = '/product/stock/fiche.php';
 
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
@@ -332,7 +335,7 @@ function _liste(&$user, &$db, &$conf, &$langs)
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
-			'fk_warehouse'=>'<a href="'.DOL_URL_ROOT.'/product/stock/card.php?id=@val@">'.img_picto('','object_stock.png','',0).' @label@</a>'
+			'fk_warehouse'=>'<a href="'.DOL_URL_ROOT.$lien.'?id=@val@">'.img_picto('','object_stock.png','',0).' @label@</a>'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
