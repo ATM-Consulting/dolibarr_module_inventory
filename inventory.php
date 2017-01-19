@@ -418,7 +418,7 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
         </tr>
         <tr>
             <td><?php echo $langs->trans('SelectFournisseur') ?></td>
-            <td><?php echo $formDoli->select_thirdparty('','fk_supplier','s.fournisseur = 1') ?></td> 
+            <td><?php echo $formDoli->select_thirdparty('','fk_supplier','s.fournisseur = 1',0) ?></td> 
         </tr>
         <tr>
             <td><?php echo $langs->trans('OnlyProdsInStock') ?></td>
