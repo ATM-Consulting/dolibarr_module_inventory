@@ -629,7 +629,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 	$warehouse->fetch($inventory->fk_warehouse);
 	
 	$dirName = 'INVENTORY'.$inventory->getId().'('.date("d_m_Y").')';
-	$dir = DOL_DATA_ROOT.'/inventory/'.$dirName.'/';
+	$dir = $conf->inventory->multidir_output[$conf->entity].'/'.$dirName.'/';
 	
 	@mkdir($dir, 0777, true);
 	

@@ -91,7 +91,7 @@ class modinventory extends DolibarrModules
 
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/inventory/temp");
-		$this->dirs = array();
+		$this->dirs = array('/inventory');
 
 		// Config pages. Put here list of php page, stored into inventory/admin directory, to use to setup module.
 		$this->config_page_url = array("inventory_setup.php@inventory");
