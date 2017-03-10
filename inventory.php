@@ -513,6 +513,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		$TInventory[]=array(
 			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
 			,'entrepot'=>$e->getNomUrl(1)
+			,'emplacement'=>$product->array_options['options_emplacement']
 			,'barcode' => $product->barcode
 			,'qty' => $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
                         .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
@@ -621,6 +622,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 		
 		$TInventoryPrint[] = array(
 			'product' => $prod->ref.' - '.$prod->label
+			, 'emplacement' => $prod->array_options['options_emplacement']
 			, 'qty_view' => $v->qty_view
 		);
 	}
@@ -683,7 +685,7 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
 	
 	    if ($view['can_validate'] == 1) { ?>
         <tr style="background-color:#dedede;">
-            <th colspan="3">&nbsp;</th>
+            <th colspan="4">&nbsp;</th>
             <?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">&nbsp;</td>
 			<?php } ?>
@@ -721,7 +723,8 @@ function _headerList($view) {
 	?>
 			<tr style="background-color:#dedede;">
 				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
-				<th align="center">Entrepôt</td>
+				<th align="center">Entrepôt</th>
+				<th align="center">Emplacement</th>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">Code-barre</td>
 				<?php } ?>
@@ -760,7 +763,7 @@ function _headerList($view) {
 			</tr>
 			<?php if ($view['can_validate'] == 1) { ?>
 	    	<tr style="background-color:#dedede;">
-	    	    <th colspan="<?php echo empty($conf->barcode->enabled) ? 3 : 4;  ?>">&nbsp;</th>
+	    	    <th colspan="<?php echo empty($conf->barcode->enabled) ? 4 : 5;  ?>">&nbsp;</th>
 	    	    <th>PMP</th>
 	    	    <th>Dernier PA</th>
 	    	    <?php
