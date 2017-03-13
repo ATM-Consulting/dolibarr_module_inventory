@@ -27,18 +27,18 @@ class TInventory extends TObjetStd
 		
 	}
 	
-	function sort_det() 
+	function sort_det($sortingFunction)
 	{
-		usort($this->TInventorydet, array('TInventory', 'customSort'));
+		usort($this->TInventorydet, $sortingFunction);
 	}
 	
-	function load(&$PDOdb, $id,$annexe = true) 
+	function load(&$PDOdb, $id, $annexe = true, $sortingFunction = array('TInventory', 'customSort')) 
 	{
 	    
         if(!$annexe) $this->withChild = false;
         
 		$res = parent::load($PDOdb, $id);
-		$this->sort_det();
+		$this->sort_det($sortingFunction);
 		
 		$this->amount = 0;
 		foreach($this->TInventorydet as &$det){

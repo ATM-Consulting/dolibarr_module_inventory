@@ -24,7 +24,7 @@ _action();
 
 function _action() 
 {
-	global $user, $db, $conf, $langs;	
+	global $user, $db, $conf, $langs, $id, $sortOrder;	
 	$PDOdb=new TPDOdb;
 	//$PDOdb->debug=true;
 	
@@ -99,12 +99,13 @@ function _action()
 		case 'view':
 		case 'edit':
 			if (!$user->rights->inventory->write) accessforbidden();
-			
+
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
+			$sortOrder = __get('sortOrder', 'ASC', 'string');
 			
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id);
+			$inventory->load($PDOdb, $id, true, '_sort_det_by_emplacement');
 			
 			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, __get('action', 'edit', 'string'));
 			
@@ -115,9 +116,10 @@ function _action()
 			
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
+			$sortOrder = __get('sortOrder', 'ASC', 'string');
 			
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id);
+			$inventory->load($PDOdb, $id, true, '_sort_det_by_emplacement');
 			
 			$inventory->set_values($_REQUEST);
 			
@@ -129,7 +131,7 @@ function _action()
 			else 
 			{
 				$inventory->save($PDOdb);
-				header('Location: '.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=view', 1));
+				header('Location: '.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&amp;sortOrder='.$sortOrder.'&action=view', 1));
 			}
 			
 			break;
@@ -137,9 +139,10 @@ function _action()
 		case 'regulate':
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
+			$sortOrder = __get('sortOrder', 'ASC', 'string');
 			
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id);
+			$inventory->load($PDOdb, $id, true, '_sort_det_by_emplacement');
             
             if($inventory->status == 0) {
                 $inventory->status = 1;
@@ -158,9 +161,10 @@ function _action()
 		case 'changePMP':
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
+			$sortOrder = __get('sortOrder', 'ASC', 'string');
 			
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id);
+			$inventory->load($PDOdb, $id, true, '_sort_det_by_emplacement');
 			
 			$inventory->changePMP($PDOdb);
 			
@@ -173,10 +177,11 @@ function _action()
 			
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
+			$sortOrder = __get('sortOrder', 'ASC', 'string');
 			$fk_warehouse = __get('fk_warehouse', 0, 'int');
 			
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id);
+			$inventory->load($PDOdb, $id, true, '_sort_det_by_emplacement');
 			
 			$type = (!empty($conf->use_javascript_ajax) && !empty($conf->global->PRODUIT_USE_SEARCH_TO_SELECT) ? 'string' : 'int'); //AA heu ?
 			
@@ -216,7 +221,7 @@ function _action()
 				}
 				
 				$inventory->save($PDOdb);
-				$inventory->sort_det();
+				// $inventory->sort_det(array('TInventory', 'customSort'));
 			}
 			
 			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'edit');
@@ -234,8 +239,9 @@ function _action()
 			$TInventorydet->delete($PDOdb);
 			
 			$id = __get('id', 0, 'int');
+			$sortOrder = __get('sortOrder', 'ASC', 'string');
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id);
+			$inventory->load($PDOdb, $id, true, '_sort_det_by_emplacement');
 			
 			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'edit');
 			
@@ -245,9 +251,10 @@ function _action()
             
             $PDOdb = new TPDOdb;
             $id = __get('id', 0, 'int');
+			$sortOrder = __get('sortOrder', 'ASC', 'string');
             
             $inventory = new TInventory;
-            $inventory->load($PDOdb, $id);
+            $inventory->load($PDOdb, $id, true, '_sort_det_by_emplacement');
             
             $inventory->deleteAllLine($PDOdb);
             
@@ -262,9 +269,10 @@ function _action()
             
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
+			$sortOrder = __get('sortOrder', 'ASC', 'string');
 			
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id);
+			$inventory->load($PDOdb, $id, true, '_sort_det_by_emplacement');
 			
 			$inventory->delete($PDOdb);
 			
@@ -434,6 +442,8 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 
 function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit')
 {
+	global $sortOrder;
+
 	llxHeader('',$langs->trans('inventoryEdit'),'','');
 	
 	$warehouse = new Entrepot($db);
@@ -465,6 +475,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 		,'entity' => $inventory->entity
 		,'amount' => price( round($inventory->amount,2) )
 		,'amount_actual'=>price (round($inventory->amount_actual,2))
+		,'sort_order' => $sortOrder
 		
 	);
 	
@@ -485,10 +496,20 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 	llxFooter('');
 }
 
+function _sort_det_by_emplacement($a, $b)
+{
+	global $sortOrder;
+
+	if( $sortOrder == 'DESC') {
+		return strcmp($b->product->array_options['options_emplacement'], $a->product->array_options['options_emplacement']);
+	}
+
+	return strcmp($a->product->array_options['options_emplacement'], $b->product->array_options['options_emplacement']);
+}
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 {
-	global $db;
+	global $db, $sortOrder;
 	$inventory->amount_actual = 0;
 	
 	$TCacheEntrepot = array();
@@ -520,7 +541,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 			,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
 			,'qty_stock' => $stock
 			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
+			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&amp;sortOrder='.$sortOrder.'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
 			,'pmp_stock'=>round($pmp_actual,2)
             ,'pmp_actual'=> round($pmp * $TInventorydet->qty_view,2)
 			,'pmp_new'=>(!empty($user->rights->inventory->changePMP) ?  $form->texte('', 'new_pmp['.$k.']',$TInventorydet->new_pmp, 8, 0, "style='text-align:right;'")
@@ -687,7 +708,7 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <tr style="background-color:#dedede;">
             <th colspan="4">&nbsp;</th>
             <?php if (! empty($conf->barcode->enabled)) { ?>
-					<th align="center">&nbsp;</td>
+					<th align="center">&nbsp;</th>
 			<?php } ?>
             <th align="right"><?php echo price($total_pmp) ?></th>
             <th align="right"><?php echo price($total_pa) ?></th>
@@ -718,18 +739,19 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <?php } 
 }
 function _headerList($view) {
-	global $conf,$user,$langs;
+	global $conf,$user,$langs,$id, $sortOrder;
+
 	
 	?>
 			<tr style="background-color:#dedede;">
 				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
-				<th align="center">Entrepôt</th>
-				<th align="center">Emplacement</th>
+				<th align="center" width="5%">Entrepôt</th>
+				<th align="center"><a style="display:block;width:100%;height:100%" href="?id=<?php echo $id; ?>&amp;action=view&amp;sortOrder=<?php echo ($sortOrder == 'ASC' ? 'DESC' : 'ASC'); ?>">Emplacement&nbsp;<?php echo ($sortOrder == 'ASC' ? '⏶' : '⏷'); ?></a></th>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
-					<th align="center">Code-barre</td>
+					<th align="center">Code-barre</th>
 				<?php } ?>
 				<?php if ($view['can_validate'] == 1) { ?>
-					<th align="center" width="20%">Quantité théorique</th>
+					<th align="center" width="10%">Quantité théorique</th>
 					<?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
 	              		echo '<th align="center" width="20%" colspan="3">Valeur théorique</th>';   	
@@ -741,7 +763,7 @@ function _headerList($view) {
 					?>
 					
 				<?php } ?>
-				    <th align="center" width="20%">Quantité réelle</th>
+				    <th align="center" width="10%">Quantité réelle</th>
 				<?php if ($view['can_validate'] == 1) { ?>
 				    
 				    <?php
@@ -754,7 +776,7 @@ function _headerList($view) {
 					 
 					?>
 						
-					<th align="center" width="15%">Quantité régulée</th>
+					<th align="center" width="10%">Quantité régulée</th>
 				<?php } ?>
 				<?php if ($view['is_already_validate'] != 1) { ?>
 					<th align="center" width="5%">#</th>
