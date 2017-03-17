@@ -281,7 +281,7 @@ class TInventorydet extends TObjetStd
 		
 	}
 	
-	function load(&$PDOdb, $id) 
+	function load(&$PDOdb, $id, $loadChild = true) 
 	{
 		global $conf;
 		

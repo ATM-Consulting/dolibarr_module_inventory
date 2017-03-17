@@ -76,7 +76,8 @@
 	<form action="<?php echo $view['url']; ?>" method="POST">
 		<input type="hidden" name="action" value="add_line" />
 		<input type="hidden" name="id" value="<?php echo $inventoryTPL['id']; ?>" />
-		<input type="hidden" name="sortOrder" value="<?php echo $inventoryTPL['sort_order']; ?>" />
+		<input type="hidden" name="sortfield" value="<?php echo $inventoryTPL['sortfield']; ?>" />
+		<input type="hidden" name="sortorder" value="<?php echo $inventoryTPL['sortorder']; ?>" />
 	
 		<?php echo $product['list']; ?>
 		
@@ -92,7 +93,8 @@
 	
 	<input type="hidden" name="action" value="save" />
 	<input type="hidden" name="id" value="<?php echo $inventoryTPL['id']; ?>" />
-	<input type="hidden" name="sortOrder" value="<?php echo $inventoryTPL['sort_order']; ?>" />
+	<input type="hidden" name="sortfield" value="<?php echo $inventoryTPL['sortfield']; ?>" />
+	<input type="hidden" name="sortorder" value="<?php echo $inventoryTPL['sortorder']; ?>" />
 	
 	<table width="100%" class="border workstation">
 		<?php
@@ -172,23 +174,23 @@
 			<?php if ($view['mode'] == 'view') { ?>
 				<a href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=printDoc" class="butAction">Imprimer</a>
 				<a href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=exportCSV" class="butAction">Export CSV</a>
-				<a href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&amp;sortOrder=<?php echo $inventoryTPL['sort_order']; ?>&action=edit" class="butAction">Modifier</a>
+				<a href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=edit&amp;sortfield=<?php echo $inventoryTPL['sortfield']; ?>&amp;sortorder=<?php echo $inventoryTPL['sortorder']; ?>" class="butAction">Modifier</a>
 				<?php 
 				 if(!empty($user->rights->inventory->changePMP)) {
 				 	echo '<a href="javascript:;" onclick="javascript:if (!confirm(\'Confirmez-vous l\\\'application du nouveau PMP ?\')) return false; else document.location.href=\''.$view['url']
 				 			.'?id='.$inventoryTPL['id']
-				 			.'&amp;sortOrder='.$inventoryTPL['sort_order'].'&action=changePMP&token='.$view['token'].'\'; " class="butAction">Appliquer le PMP</a>';
+				 			.'&amp;sortfield='.$inventoryTPL['sortfield'].'&amp;sortorder='.$inventoryTPL['sortorder'].'&action=changePMP&token='.$view['token'].'\'; " class="butAction">Appliquer le PMP</a>';
 				 }
 				
 				if ($view['can_validate'] == 1) { ?>
-					<a href="javascript:;" onclick="javascript:if (!confirm('Confirmez-vous la régulation ?')) return false; else document.location.href='<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&amp;sortOrder=<?php echo $inventoryTPL['sort_order']; ?>&action=regulate&token=<?php echo $view['token']; ?>'; " class="butAction">Réguler le stock</a>
+					<a href="javascript:;" onclick="javascript:if (!confirm('Confirmez-vous la régulation ?')) return false; else document.location.href='<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&amp;sortfield=<?php echo $inventoryTPL['sortfield']; ?>&amp;sortorder=<?php echo $inventoryTPL['sortorder']; ?>&action=regulate&token=<?php echo $view['token']; ?>'; " class="butAction">Réguler le stock</a>
 				<?php } ?>
 			<?php } ?>
 			<?php if ($view['mode'] == 'edit') { ?>
-				<input name="back" type="button" class="butAction" value="Quitter la saisie" onclick="document.location='?id=<?php echo $inventoryTPL['id']; ?>&action=view&amp;sortOrder=<?php echo $inventoryTPL['sort_order']; ?>';" />
+				<input name="back" type="button" class="butAction" value="Quitter la saisie" onclick="document.location='?id=<?php echo $inventoryTPL['id']; ?>&action=view&amp;sortfield=<?php echo $inventoryTPL['sortfield']; ?>&amp;sortorder=<?php echo $inventoryTPL['sortorder']; ?>';" />
 			<?php } ?>
 			<?php if ($view['can_validate'] == 1) { ?>
-                <a onclick="if (!confirm('Confirmez-vous la vidange ?')) return false;" href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=flush&amp;sortOrder=<?php echo $inventoryTPL['sort_order']; ?>" class="butActionDelete">Vider</a>
+                <a onclick="if (!confirm('Confirmez-vous la vidange ?')) return false;" href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=flush&amp;sortfield=<?php echo $inventoryTPL['sortfield']; ?>&amp;sortorder=<?php echo $inventoryTPL['sortorder']; ?>" class="butActionDelete">Vider</a>
                 &nbsp;&nbsp;&nbsp;
                 <a onclick="if (!confirm('Confirmez-vous la suppression ?')) return false;" href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=delete" class="butActionDelete">Supprimer</a>
         	<?php } ?>
