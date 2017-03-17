@@ -291,7 +291,11 @@ function _action()
 		case 'printDoc':
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
-			
+
+			// On force le tri par emplacement
+			$sortfield = 'emplacement';
+			$sortorder = 'ASC';
+	
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
 			
