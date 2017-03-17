@@ -102,11 +102,11 @@ function _action()
 
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
-			$sortfield = __get('sortfield', 'fk_product', 'string');
+			$sortfield = __get('sortfield', 'product_ref', 'string');
 			$sortorder = __get('sortorder', 'ASC', 'string');
 			
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id, true, '_sort_det');
+			$inventory->load($PDOdb, $id);
 			
 			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, __get('action', 'edit', 'string'));
 			
@@ -117,11 +117,11 @@ function _action()
 			
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
-			$sortfield = __get('sortfield', 'fk_product', 'string');
+			$sortfield = __get('sortfield', 'product_ref', 'string');
 			$sortorder = __get('sortorder', 'ASC', 'string');
 			
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id, true, '_sort_det');
+			$inventory->load($PDOdb, $id);
 			
 			$inventory->set_values($_REQUEST);
 			
@@ -141,11 +141,11 @@ function _action()
 		case 'regulate':
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
-			$sortfield = __get('sortfield', 'fk_product', 'string');
+			$sortfield = __get('sortfield', 'product_ref', 'string');
 			$sortorder = __get('sortorder', 'ASC', 'string');
 			
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id, true, '_sort_det');
+			$inventory->load($PDOdb, $id);
             
             if($inventory->status == 0) {
                 $inventory->status = 1;
@@ -164,11 +164,11 @@ function _action()
 		case 'changePMP':
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
-			$sortfield = __get('sortfield', 'fk_product', 'string');
+			$sortfield = __get('sortfield', 'product_ref', 'string');
 			$sortorder = __get('sortorder', 'ASC', 'string');
 			
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id, true, '_sort_det');
+			$inventory->load($PDOdb, $id);
 			
 			$inventory->changePMP($PDOdb);
 			
@@ -181,12 +181,12 @@ function _action()
 			
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
-			$sortfield = __get('sortfield', 'fk_product', 'string');
+			$sortfield = __get('sortfield', 'product_ref', 'string');
 			$sortorder = __get('sortorder', 'ASC', 'string');
 			$fk_warehouse = __get('fk_warehouse', 0, 'int');
 
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id, true, '_sort_det');
+			$inventory->load($PDOdb, $id);
 			
 			$type = (!empty($conf->use_javascript_ajax) && !empty($conf->global->PRODUIT_USE_SEARCH_TO_SELECT) ? 'string' : 'int'); //AA heu ?
 			
@@ -226,7 +226,7 @@ function _action()
 				}
 				
 				$inventory->save($PDOdb);
-				$inventory->sort_det('_sort_det');
+				$inventory->sort_det();
 			}
 			
 			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'edit');
@@ -244,10 +244,10 @@ function _action()
 			$TInventorydet->delete($PDOdb);
 			
 			$id = __get('id', 0, 'int');
-			$sortfield = __get('sortfield', 'fk_product', 'string');
+			$sortfield = __get('sortfield', 'product_ref', 'string');
 			$sortorder = __get('sortorder', 'ASC', 'string');
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id, true, '_sort_det');
+			$inventory->load($PDOdb, $id);
 			
 			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, 'edit');
 			
@@ -257,11 +257,11 @@ function _action()
             
             $PDOdb = new TPDOdb;
             $id = __get('id', 0, 'int');
-			$sortfield = __get('sortfield', 'fk_product', 'string');
+			$sortfield = __get('sortfield', 'product_ref', 'string');
 			$sortorder = __get('sortorder', 'ASC', 'string');
             
             $inventory = new TInventory;
-            $inventory->load($PDOdb, $id, true, '_sort_det');
+            $inventory->load($PDOdb, $id);
             
             $inventory->deleteAllLine($PDOdb);
             
@@ -276,11 +276,11 @@ function _action()
             
 			$PDOdb = new TPDOdb;
 			$id = __get('id', 0, 'int');
-			$sortfield = __get('sortfield', 'fk_product', 'string');
+			$sortfield = __get('sortfield', 'product_ref', 'string');
 			$sortorder = __get('sortorder', 'ASC', 'string');
 			
 			$inventory = new TInventory;
-			$inventory->load($PDOdb, $id, true, '_sort_det');
+			$inventory->load($PDOdb, $id);
 			
 			$inventory->delete($PDOdb);
 			
@@ -505,30 +505,6 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 	llxFooter('');
 }
 
-function _sort_det($a, $b)
-{
-	global $sortfield, $sortorder;
-
-	if(! in_array($sortfield, array('fk_product', 'emplacement'))) $sortfield = 'fk_product';
-	if(! in_array($sortorder, array('ASC', 'DESC'))) $sortorder = 'ASC';
-
-	if($sortfield == 'emplacement')
-	{
-			$a_var = $a->product->array_options['options_emplacement'];
-			$b_var = $b->product->array_options['options_emplacement'];
-	}
-	else
-	{
-			$a_var = $a->{$sortfield};
-			$b_var = $b->{$sortfield};
-	}
-
-	if( $sortorder == 'DESC') {
-		return strcmp($b_var, $a_var);
-	}
-
-	return strcmp($a_var, $b_var);
-}
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 {
@@ -768,7 +744,7 @@ function _headerList($view) {
 	?>
 			<tr style="background-color:#dedede;">
 				<th align="left" width="20%">
-					&nbsp;&nbsp;<a href="?id=<?php echo $id; ?>&amp;action=view&amp;sortfield=fk_product&amp;sortorder=<?php echo ($sortfield == 'fk_product' && $sortorder == 'ASC' ? 'DESC' : 'ASC'); ?>">Produit<?php if($sortfield == 'fk_product') echo $sortorder == 'ASC' ? '&nbsp;⏶' : '&nbsp;⏷'; ?></a></th>
+					&nbsp;&nbsp;<a href="?id=<?php echo $id; ?>&amp;action=view&amp;sortfield=product_ref&amp;sortorder=<?php echo ($sortfield == 'product_ref' && $sortorder == 'ASC' ? 'DESC' : 'ASC'); ?>">Produit<?php if($sortfield == 'product_ref') echo $sortorder == 'ASC' ? '&nbsp;⏶' : '&nbsp;⏷'; ?></a></th>
 				<th align="center" width="5%">Entrepôt</th>
 				<th align="center"><a href="?id=<?php echo $id; ?>&amp;action=view&amp;sortfield=emplacement&amp;sortorder=<?php echo ($sortfield == 'emplacement' && $sortorder == 'ASC' ? 'DESC' : 'ASC'); ?>">Emplacement<?php if($sortfield == 'emplacement') echo $sortorder == 'ASC' ? '&nbsp;⏶' : '&nbsp;⏷'; ?></a></th>
 				<?php if (! empty($conf->barcode->enabled)) { ?>

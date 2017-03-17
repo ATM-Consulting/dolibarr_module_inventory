@@ -27,18 +27,18 @@ class TInventory extends TObjetStd
 		
 	}
 	
-	function sort_det($sortingFunction)
+	function sort_det()
 	{
-		usort($this->TInventorydet, $sortingFunction);
+		usort($this->TInventorydet, array('TInventory', 'customSort'));
 	}
 	
-	function load(&$PDOdb, $id, $annexe = true, $sortingFunction = array('TInventory', 'customSort')) 
+	function load(&$PDOdb, $id, $annexe = true) 
 	{
 	    
         if(!$annexe) $this->withChild = false;
         
 		$res = parent::load($PDOdb, $id);
-		$this->sort_det($sortingFunction);
+		$this->sort_det();
 		
 		$this->amount = 0;
 		foreach($this->TInventorydet as &$det){
@@ -49,17 +49,34 @@ class TInventory extends TObjetStd
 	}
 	
 	
-	function customSort(&$objA, &$objB)
+	function customSort($objA, $objB)
 	{
-		global $db;
+		global $sortfield, $sortorder;
 		
-		$r = strcmp(strtoupper(trim($objA->product->ref)), strtoupper(trim($objB->product->ref)));
+		if(! in_array($sortfield, array('product_ref', 'emplacement'))) $sortfield = 'product_ref';
+		if(! in_array($sortorder, array('ASC', 'DESC'))) $sortorder = 'ASC';
 		
-		if ($r < 0) $r = -1;
-		elseif ($r > 0) $r = 1;
-		else $r = 0;
+		switch($sortfield) {
+			case 'emplacement':
+				$varA = $objA->product->array_options['options_emplacement'];
+				$varB = $objB->product->array_options['options_emplacement'];
+				break;
 		
-		return $r;
+			case 'product_ref':
+				$varA = strtoupper(trim($objA->product->ref));
+				$varB = strtoupper(trim($objB->product->ref));
+				break;
+		
+			default:
+				$varA = $objA->{$sortfield};
+				$varB = $objB->{$sortfield};
+		}
+		
+		if( $sortorder == 'DESC') {
+			return strcmp($varB, $varA);
+		}
+
+		return strcmp($varA, $varB);
 	}
 	
 	function changePMP(&$PDOdb) {
