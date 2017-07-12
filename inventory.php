@@ -89,7 +89,7 @@ function _action()
 			
 			foreach($Tab as &$row) {
 			
-                $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot);
+                $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot, GETPOST('includeWithStockPMP')!='' );
 			}
 			
 			$inventory->save($PDOdb);
@@ -419,6 +419,11 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
         <tr>
             <td><?php echo $langs->trans('OnlyProdsInStock') ?></td>
             <td><input type="checkbox" name="OnlyProdsInStock" value="1"></td> 
+        </tr>
+        
+        <tr>
+            <td><?php echo $langs->trans('IncludeProdWithCurrentStockValue') ?></td>
+            <td><input type="checkbox" name="includeWithStockPMP" value="1"></td> 
         </tr>
         
     </table>
