@@ -89,7 +89,7 @@ function _action()
 			
 			foreach($Tab as &$row) {
 			
-                $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot);
+                $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot, GETPOST('includeWithStockPMP')!='' );
 			}
 			
 			$inventory->save($PDOdb);

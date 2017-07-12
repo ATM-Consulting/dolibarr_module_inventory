@@ -138,7 +138,7 @@ class TInventory extends TObjetStd
         
     }
     
-    function add_product(&$PDOdb, $fk_product, $fk_entrepot='') {
+    function add_product(&$PDOdb, $fk_product, $fk_entrepot='', $addWithCurrentDetails = false) {
         
         $k = $this->addChild($PDOdb, 'TInventorydet');
         $det =  &$this->TInventorydet[$k];
@@ -149,6 +149,12 @@ class TInventory extends TObjetStd
         
         $det->load_product();
                 
+        if($addWithCurrentDetails) {
+        	$det->product->load_stock();
+        	$det->qty_view = $det->product->stock_warehouse[$fk_entrepot]->real;
+        	$det->new_pmp= $det->product->pmp;
+        }
+        
         $date = $this->get_date('date_inventory', 'Y-m-d');
         if(empty($date))$date = $this->get_date('date_cre', 'Y-m-d'); 
         $det->setStockDate($PDOdb, $date , $fk_entrepot);
@@ -281,11 +287,11 @@ class TInventorydet extends TObjetStd
 		
 	}
 	
-	function load(&$PDOdb, $id) 
+	function load(&$PDOdb, $id, $loadChild = true) 
 	{
 		global $conf;
 		
-		$res = parent::load($PDOdb, $id);
+		$res = parent::load($PDOdb, $id, $loadChild);
 		$this->load_product();
         $this->fetch_current_pa();
 			
