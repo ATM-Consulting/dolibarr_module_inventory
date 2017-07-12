@@ -421,6 +421,11 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
             <td><input type="checkbox" name="OnlyProdsInStock" value="1"></td> 
         </tr>
         
+        <tr>
+            <td><?php echo $langs->trans('IncludeProdWithCurrentStockValue') ?></td>
+            <td><input type="checkbox" name="includeWithStockPMP" value="1"></td> 
+        </tr>
+        
     </table>
     <?php
     

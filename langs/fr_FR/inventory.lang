@@ -37,3 +37,4 @@ INVENTORY_USE_INVENTORY_DATE_FROM_DATEMVT=Dater les mouvements d'inventaire à d
 inventoryChangePMPPermission=Changer la valeur du PMP d'un produit
 ColumnNewPMP=Nouveau PMP unitaire
 OnlyProdsInStock=Ne pas intégrer les produits qui n'ont pas de stock dans l'entrepôt sélectionné
+IncludeProdWithCurrentStockValue=Intégrer les produits avec leur stock actuel et PMP
