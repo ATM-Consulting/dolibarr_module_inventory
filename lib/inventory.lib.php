@@ -76,7 +76,7 @@ function inventorySelectProducts(&$PDOdb, &$inventory)
 	
 	ob_start();
 	$form = new Form($db);
-	$form->select_produits(-1, 'fk_product');
+	$form->select_produits(-1, 'fk_product', 0, 0);
 	
 	// Il nous faut impérativement une liste custom car il ne faut que les entrepôts de la famille de celui qu'on inventorie
 	$TChildWarehouses = array($inventory->fk_warehouse);
