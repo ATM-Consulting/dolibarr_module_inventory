@@ -161,16 +161,15 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
-// Example with a yes / no select
 $var=!$var;
 print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("INVENTORY_ADD_PRODUCT_NO_LIMIT").'</td>';
+print '<td>'.$langs->trans("INVENTORY_NB_PRODUCT_IN_SELECT").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="300">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_INVENTORY_ADD_PRODUCT_NO_LIMIT">';
-print $form->selectyesno("INVENTORY_ADD_PRODUCT_NO_LIMIT",$conf->global->INVENTORY_ADD_PRODUCT_NO_LIMIT,1);
+print '<input type="hidden" name="action" value="set_INVENTORY_NB_PRODUCT_IN_SELECT">';
+print '<input type="text" name="INVENTORY_NB_PRODUCT_IN_SELECT" value="'.$conf->global->INVENTORY_NB_PRODUCT_IN_SELECT.'" />';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
