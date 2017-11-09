@@ -771,7 +771,7 @@ function _headerList($view) {
 			<?php if ($view['can_validate'] == 1) { ?>
 	    	<tr style="background-color:#dedede;">
 	    	    <th colspan="<?php echo empty($conf->barcode->enabled) ? 3 : 4;  ?>">&nbsp;</th>
-	    	    <th>PMP</th>
+	    	    <th>PMP<?php if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL)) echo img_info($langs->trans('UsePAifnull')); ?></th>
 	    	    <th>Dernier PA</th>
 	    	    <?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){

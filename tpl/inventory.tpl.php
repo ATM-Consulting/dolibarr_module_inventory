@@ -136,7 +136,7 @@
                     <td align="right"><?php echo price($row['pmp_actual']); ?></td>
                     <?php
                     if(!empty($user->rights->inventory->changePMP)) {
-                    	echo '<td>'.$row['pmp_new'].'</td>';	
+                    	echo '<td align="right">'.$row['pmp_new'].'</td>';	
 					}
                     ?>
                     <td align="right"><?php echo price($row['pa_actual']); ?></td>
