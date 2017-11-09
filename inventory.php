@@ -493,7 +493,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 {
-	global $db;
+	global $db,$conf;
 	$inventory->amount_actual = 0;
 	
 	$TCacheEntrepot = array();
@@ -511,6 +511,11 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
         $last_pa = $TInventorydet->pa;
 		$current_pa = $TInventorydet->current_pa;
         
+		if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL) && empty($pmp_actual)) {
+			if(!empty($last_pa)) $pmp_actual = $last_pa* $stock;
+			else if(!empty($current_pa)) $pmp_actual = $current_pa* $stock;
+		}
+
 		$e = new Entrepot($db);
 		if(!empty($TCacheEntrepot[$TInventorydet->fk_warehouse])) $e = $TCacheEntrepot[$TInventorydet->fk_warehouse];
 		elseif($e->fetch($TInventorydet->fk_warehouse) > 0) $TCacheEntrepot[$e->id] = $e;
