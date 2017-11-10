@@ -512,8 +512,8 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		$current_pa = $TInventorydet->current_pa;
         
 		if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL) && empty($pmp_actual)) {
-			if(!empty($last_pa)) $pmp_actual = $last_pa* $stock;
-			else if(!empty($current_pa)) $pmp_actual = $current_pa* $stock;
+			if(!empty($last_pa)){ $pmp_actual = $last_pa* $stock;$pmp=$last_pa;}
+			else if(!empty($current_pa)) {$pmp_actual = $current_pa* $stock; $pmp=$current_pa;}
 		}
 
 		$e = new Entrepot($db);
