@@ -780,7 +780,7 @@ function _headerList($view) {
 					 
 				?>
 	    	    <th>&nbsp;</th>
-	    	    <th>PMP</th>
+	    	    <th>PMP<?php if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL)) echo img_info($langs->trans('UsePAifnull')); ?></th>
 	    	    <?php
 	    	    if(!empty($user->rights->inventory->changePMP)) {
 	    	    	echo '<th rel="newPMP">'.$langs->trans('ColumnNewPMP').'</th>';
