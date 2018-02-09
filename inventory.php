@@ -572,7 +572,12 @@ function exportCSV(&$inventory) {
 
         $last_pa = $TInventorydet->pa;
         $current_pa = $TInventorydet->current_pa;
-		
+	
+	if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL) && empty($pmp_actual)) {
+		if(!empty($last_pa)){ $pmp_actual = $last_pa* $stock;$pmp=$last_pa;}
+		else if(!empty($current_pa)) {$pmp_actual = $current_pa* $stock; $pmp=$current_pa;}
+	}
+	
 		if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) {
 			$row=array(
 				'produit' => $product->ref
@@ -580,12 +585,12 @@ function exportCSV(&$inventory) {
 				,'barcode' => $product->barcode
 				,'qty_stock' => $stock
 				,'pmp_stock'=>round($pmp_actual,2)
-	            ,'pa_stock'=>round($last_pa * $stock,2)
+	            		,'pa_stock'=>round($last_pa * $stock,2)
 				,'current_pa_stock'=>round($current_pa * $stock,2)
-			    ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+			    	,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
 				,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
-	            ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
-	        	,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)    
+	            		,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
+	        	,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
 				,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
 				
 			);
@@ -697,24 +702,24 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
             <?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">&nbsp;</td>
 			<?php } ?>
-            <th align="right"><?php echo price($total_pmp) ?></th>
-            <th align="right"><?php echo price($total_pa) ?></th>
+            <th align="right" nowrap="nowrap"><?php echo price($total_pmp) ?></th>
+            <th align="right" nowrap="nowrap"><?php echo price($total_pa) ?></th>
             <?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
 	              		echo '<th align="right">'.price($total_current_pa).'</th>';   	
 					 }
 			?>
             <th>&nbsp;</th>
-            <th align="right"><?php echo price($total_pmp_actual) ?></th>
+            <th align="right" nowrap="nowrap"><?php echo price($total_pmp_actual) ?></th>
             <?php
             if(!empty($user->rights->inventory->changePMP)) {
                	echo '<th>&nbsp;</th>';	
 			}
 			?>
-            <th align="right"><?php echo price($total_pa_actual) ?></th>
+            <th align="right" nowrap="nowrap"><?php echo price($total_pa_actual) ?></th>
             <?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
-	              		echo '<th align="right">'.price($total_current_pa_actual).'</th>';   	
+	              		echo '<th align="right" nowrap="nowrap">'.price($total_current_pa_actual).'</th>';   	
 					 }
 			?>
 
