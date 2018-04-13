@@ -303,6 +303,7 @@ function _action()
 
 function _liste(&$user, &$db, &$conf, &$langs) 
 {	
+	global $dol_version;
 	llxHeader('',$langs->trans('inventoryListTitle'),'','');
 	
 	$form=new TFormCore;
@@ -310,14 +311,14 @@ function _liste(&$user, &$db, &$conf, &$langs)
 	$inventory = new TInventory;
 	$r = new TSSRenderControler($inventory);
 
-	$sql="SELECT i.rowid, e.label, i.date_inventory, i.fk_warehouse, i.date_cre, i.date_maj, i.status
+	$sql="SELECT i.rowid, ".($dol_version >= 7 ? 'e.ref' : 'e.label').", i.date_inventory, i.fk_warehouse, i.date_cre, i.date_maj, i.status
 		  FROM ".MAIN_DB_PREFIX."inventory i
 		  LEFT JOIN ".MAIN_DB_PREFIX."entrepot e ON (e.rowid = i.fk_warehouse)
 		  WHERE i.entity=".(int) $conf->entity;
 	
  	if (!__get('TListTBS', 0, 'int')) $sql .= " ORDER BY i.rowid DESC";
-	
-	$THide = array('label');
+	$hide = $dol_version >= 7 ? 'ref' : 'label';
+	$THide = array($hide);
 
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'POST');
 
@@ -331,7 +332,7 @@ function _liste(&$user, &$db, &$conf, &$langs)
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
-			'fk_warehouse'=>'<a href="'.DOL_URL_ROOT.$lien.'?id=@val@">'.img_picto('','object_stock.png','',0).' @label@</a>'
+			'fk_warehouse'=>'<a href="'.DOL_URL_ROOT.$lien.'?id=@val@">'.img_picto('','object_stock.png','',0).' @'.($dol_version >= 7 ? 'ref' : 'label').'@</a>'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
