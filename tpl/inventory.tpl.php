@@ -17,6 +17,7 @@
             
         }).done(function(data) {
             $('#qty_view_'+k).html(data);
+            console.log(data);
             $input.val(0);
             $.jnotify("Quantité ajoutée : "+qty, "mesgs" );
             
@@ -116,6 +117,9 @@
 				<td align="center"><?php echo $row['entrepot']; ?></td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<td align="center"><?php echo $row['barcode']; ?></td>
+				<?php } ?>
+				<?php if($conf->productbatch->enabled) {?>
+					<td align="center" style="background-color: #e8e8ff;"><?php echo $row['lot']; ?></td>
 				<?php } ?>
 				<?php if ($view['can_validate'] == 1) { ?>
 					<td align="center" style="background-color: #e8e8ff;"><?php echo $row['qty_stock']; ?></td>
