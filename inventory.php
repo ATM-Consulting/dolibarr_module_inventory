@@ -64,7 +64,9 @@ function _action()
             $fk_supplier = (int)GETPOST('fk_supplier');
             $fk_warehouse = (int)GETPOST('fk_warehouse');
 			$only_prods_in_stock = (int)GETPOST('OnlyProdsInStock');
-            
+			$inventoryWithBatchDetail = (int)GETPOST('inventoryWithBatchDetail');
+			$inventory->per_batch = $inventoryWithBatchDetail;
+			
 			$e = new Entrepot($db);
 			$e->fetch($fk_warehouse);
 			$TChildWarehouses = array($fk_warehouse);
@@ -90,7 +92,7 @@ function _action()
 			foreach($Tab as &$row) {
 			
                 $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot, GETPOST('includeWithStockPMP')!='' );
-			    $inventory->add_batch($PDOdb, $row->fk_product, $row->fk_entrepot, $inventory->get_date('date_inventory', 'Y-m-d'), GETPOST('includeWithStockPMP')!='' );
+                if($inventoryWithBatchDetail) $inventory->add_batch($PDOdb, $row->fk_product, $row->fk_entrepot, $inventory->get_date('date_inventory', 'Y-m-d'), GETPOST('includeWithStockPMP')!='' );
 			}
 			
 			$inventory->save($PDOdb);
@@ -427,7 +429,12 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
             <td><?php echo $langs->trans('IncludeProdWithCurrentStockValue') ?></td>
             <td><input type="checkbox" name="includeWithStockPMP" value="1"></td> 
         </tr>
-        
+        <?php if($conf->productbatch->enabled)  { ?>
+        <tr>
+            <td><?php echo $langs->trans('InventoryWithBatchDetail') ?></td>
+            <td><input type="checkbox" name="inventoryWithBatchDetail" value="1"></td> 
+        </tr>
+        <?php } ?>
     </table>
     <?php
     
@@ -480,6 +487,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 		,'url' => dol_buildpath('/inventory/inventory.php', 1)
 		,'can_validate' => (int) $user->rights->inventory->validate
 		,'is_already_validate' => (int) $inventory->status
+	    ,'per_batch' => $inventory->per_batch
 		,'token'=>$_SESSION['newtoken']
 	);
 	
@@ -521,7 +529,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		$e = new Entrepot($db);
 		if(!empty($TCacheEntrepot[$TInventorydet->fk_warehouse])) $e = $TCacheEntrepot[$TInventorydet->fk_warehouse];
 		elseif($e->fetch($TInventorydet->fk_warehouse) > 0) $TCacheEntrepot[$e->id] = $e;
-		if($conf->productbatch->enabled)  {
+		if($inventory->per_batch)  {
 		    
 		    if ($TInventorydet->lot == '') $lastprodline = $k;
 		    
@@ -749,7 +757,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 
 }
 function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actual, $total_current_pa,$total_current_pa_actual) {
-	global $conf,$user,$langs;
+    global $conf,$user,$langs;
 	
 	
 	    if ($view['can_validate'] == 1) { ?>
@@ -758,7 +766,7 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
             <?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">&nbsp;</td>
 			<?php } ?>
-			<?php if($conf->productbatch->enabled) {?>
+			<?php if($view['per_batch']) {?>
     				<th align="center">&nbsp;</th>
 			<?php } ?>
             <th align="right" nowrap="nowrap"><?php echo price($total_pmp) ?></th>
@@ -790,7 +798,7 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <?php } 
 }
 function _headerList($view) {
-	global $conf,$user,$langs;
+    global $conf,$user,$langs;
 	
 	?>
 			<tr style="background-color:#dedede;">
@@ -800,7 +808,7 @@ function _headerList($view) {
 					<th align="center">Code-barre</td>
 				<?php } ?>
 				<?php if ($view['can_validate'] == 1) { ?>
-					<?php if($conf->productbatch->enabled) {?>
+					<?php if($view['per_batch']) {?>
 						<th align="center">N° de lots</th>
 					<?php } ?>
 					<th align="center" width="20%">Quantité théorique</th>

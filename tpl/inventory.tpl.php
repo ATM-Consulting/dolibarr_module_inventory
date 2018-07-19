@@ -138,7 +138,7 @@
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<td align="center"><?php echo $row['barcode']; ?></td>
 				<?php } ?>
-				<?php if($conf->productbatch->enabled) {?>
+				<?php if($view['per_batch']) {?>
 					<td align="center" style="background-color: #e8e8ff;"><?php echo $row['lot']; ?></td>
 				<?php } ?>
 				<?php if ($view['can_validate'] == 1) { ?>
