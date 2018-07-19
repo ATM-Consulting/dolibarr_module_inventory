@@ -228,5 +228,12 @@
 </form>
 <p>Date de création : <?php echo $inventoryTPL['date_cre']; ?><br />Dernière mise à jour : <?php echo $inventoryTPL['date_maj']; ?></p>
 	
-
+<script>
+$(document).ready(function(){
+	$('.enfant').each(function(){
+		parentProdline = $(this).val();
+		$('#qty_view_'+parentProdline).parent().parent().find('td').last().find('a').hide()
+	});
+});
+</script>
 	

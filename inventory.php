@@ -557,13 +557,13 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		        ,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
 		        ,'pmp_stock'=>round($pmp_actual,2)
 		        ,'pmp_actual'=> round($pmp * $TInventorydet->qty_view,2)
-		        ,'pmp_new'=>($TInventorydet->lot !== '') ? (!empty($user->rights->inventory->changePMP) ?  $form->texte('', 'new_pmp['.$k.']',$TInventorydet->new_pmp, 8, 0, "style='text-align:right;'")
+		        ,'pmp_new'=>($TInventorydet->lot == '') ? (!empty($user->rights->inventory->changePMP) ?  $form->texte('', 'new_pmp['.$k.']',$TInventorydet->new_pmp, 8, 0, "style='text-align:right;'")
 		            .($form->type_aff!='view' ? '<a id="a_save_new_pmp_'.$k.'" href="javascript:save_pmp('.$k.')">'.img_picto($langs->trans('Save'), 'bt-save.png@inventory').'</a>' : '') : '' ) : ""
 		        ,'pa_stock'=>round($last_pa * $stock,2)
 		        ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
 		        ,'current_pa_stock'=>round($current_pa * $stock,2)
 		        ,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
-		        ,'lot' => $TInventorydet->lot.(($TInventorydet->lot !== '') ? '<input type="hidden" id="prod_'.$k.'" value="'.$lastprodline.'">': '')
+		        ,'lot' => $TInventorydet->lot.(($TInventorydet->lot !== '') ? '<input class="enfant" type="hidden" id="prod_'.$k.'" value="'.$lastprodline.'">': '')
 		        ,'k'=>$k
 		        ,'id'=>$TInventorydet->getId()
 		    );
