@@ -177,7 +177,7 @@ class TInventory extends TObjetStd
         $prod->load_stock();
         
         $detailLot = $prod->stock_warehouse[$fk_entrepot]->detail_batch;
-         var_dump($detailLot); 
+//         var_dump($detailLot); exit; 
         //On récupère tous les mouvements de stocks du produit entre aujourd'hui et la date de l'inventaire
         $sql = "SELECT value, price, batch
 				FROM ".MAIN_DB_PREFIX."stock_mouvement
@@ -209,24 +209,31 @@ class TInventory extends TObjetStd
             
         }
         
-        $k = $this->addChild($PDOdb, 'TInventorydet');
-        $det =  &$this->TInventorydet[$k];
-        
-        $det->fk_inventory = $this->getId();
-        $det->fk_product = $fk_product;
-        $det->fk_warehouse = empty($fk_entrepot) ? $this->fk_warehouse : $fk_entrepot;
-        //        var_dump($det);exit;
-        $det->load_product();
-        
-        if($addWithCurrentDetails) {
-            $det->product->load_stock();
-            $det->qty_view = $det->product->stock_warehouse[$fk_entrepot]->real;
-            $det->new_pmp= $det->product->pmp;
+        foreach ($detailLot as $lot => $detail)
+        {
+//             var_dump($lot, $detail);exit;
+            $k = $this->addChild($PDOdb, 'TInventorydet');
+            $det =  &$this->TInventorydet[$k];
+            
+            $det->fk_inventory = $this->getId();
+            $det->fk_product = $fk_product;
+            $det->fk_warehouse = empty($fk_entrepot) ? $this->fk_warehouse : $fk_entrepot;
+            //        var_dump($det);exit;
+            $det->load_product();
+            $det->lot = $lot;
+            $det->qty_stock = $detail->qty;
+            
+            if($addWithCurrentDetails) {
+                $det->product->load_stock();
+                $det->qty_view = $det->product->stock_warehouse[$fk_entrepot]->real;
+                $det->new_pmp= $det->product->pmp;
+            }
+            
+            $date = $this->get_date('date_inventory', 'Y-m-d');
+            if(empty($date))$date = $this->get_date('date_cre', 'Y-m-d');
+//             $det->setStockDate($PDOdb, $date , $fk_entrepot);
         }
         
-        $date = $this->get_date('date_inventory', 'Y-m-d');
-        if(empty($date))$date = $this->get_date('date_cre', 'Y-m-d');
-        $det->setStockDate($PDOdb, $date , $fk_entrepot);
         
     }
     
