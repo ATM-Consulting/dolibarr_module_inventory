@@ -209,6 +209,7 @@ class TInventory extends TObjetStd
             
         }
         
+        $total_qty = 0;
         foreach ($detailLot as $lot => $detail)
         {
 //             var_dump($lot, $detail);exit;
@@ -222,6 +223,7 @@ class TInventory extends TObjetStd
             $det->load_product();
             $det->lot = $lot;
             $det->qty_stock = $detail->qty;
+            $total_qty += $detail->qty;
             
             if($addWithCurrentDetails) {
                 $det->product->load_stock();
@@ -233,7 +235,26 @@ class TInventory extends TObjetStd
             if(empty($date))$date = $this->get_date('date_cre', 'Y-m-d');
 //             $det->setStockDate($PDOdb, $date , $fk_entrepot);
         }
-        
+//         var_dump((float) $total_qty, (float) $prod->stock_warehouse[$fk_entrepot]->real); exit;
+//         if ((float) $total_qty !== (float) $prod->stock_warehouse[$fk_entrepot]->real)
+//         {
+//             $k = $this->addChild($PDOdb, 'TInventorydet');
+//             $det =  &$this->TInventorydet[$k];
+            
+//             $det->fk_inventory = $this->getId();
+//             $det->fk_product = $fk_product;
+//             $det->fk_warehouse = empty($fk_entrepot) ? $this->fk_warehouse : $fk_entrepot;
+//             //        var_dump($det);exit;
+//             $det->load_product();
+//             $det->lot = "NA";
+//             $det->qty_stock = (float) $prod->stock_warehouse[$fk_entrepot]->real - $total_qty;
+            
+//             if($addWithCurrentDetails) {
+//                 $det->product->load_stock();
+//                 $det->qty_view = $det->product->stock_warehouse[$fk_entrepot]->real;
+//                 $det->new_pmp= $det->product->pmp;
+//             }
+//         }
         
     }
     

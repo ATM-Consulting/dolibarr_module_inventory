@@ -513,7 +513,25 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 	    
         $product = & $TInventorydet->product;
 		$stock = $TInventorydet->qty_stock;
-	
+		
+		
+		$product->load_stock();
+		$lotstotal = 0;
+		if (count($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch))
+		{
+		    foreach ($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch as $lot => $details)
+		    {
+		        $lotstotal += $details->qty;
+		    }
+		}
+		
+		$lotparent = '';
+		if ((float) $lotstotal !== (float) $stock)
+		{
+		    $lotparent = img_picto('Stock à corriger', 'error');
+		}
+// 		var_dump($lotstotal, $stock); exit;
+		
         $pmp = $TInventorydet->pmp;
 		$pmp_actual = $pmp * $stock;
 		$inventory->amount_actual+=$pmp_actual;
@@ -557,6 +575,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		        'produit' => ($TInventorydet->lot == '') ? $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label : $product->getNomUrl(1)
 		        ,'entrepot'=>$e->getNomUrl(1)
 		        ,'barcode' => $product->barcode
+		        ,'lot' => $TInventorydet->lot.(($TInventorydet->lot !== '') ? '<input class="enfant" type="hidden" id="prod_'.$k.'" value="'.$lastprodline.'">': $lotparent)
 		        ,'qty' => ($TInventorydet->lot == '') ? '' : $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
 		        .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
 		        ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
@@ -571,7 +590,6 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		        ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
 		        ,'current_pa_stock'=>round($current_pa * $stock,2)
 		        ,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
-		        ,'lot' => $TInventorydet->lot.(($TInventorydet->lot !== '') ? '<input class="enfant" type="hidden" id="prod_'.$k.'" value="'.$lastprodline.'">': '')
 		        ,'k'=>$k
 		        ,'id'=>$TInventorydet->getId()
 		    );
