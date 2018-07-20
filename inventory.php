@@ -459,7 +459,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 	$form->Set_typeaff($mode);
 	
 	$TInventory = array();
-	$Tinventory = _fiche_ligne($db, $user, $langs, $inventory, $TInventory, $form);
+	$Tinventory = _fiche_ligne($db, $user, $langs, $inventory, $TInventory, $form, $mode);
 	
 	$TBS=new TTemplateTBS();
 	$TBS->TBS->protect=false;
@@ -501,7 +501,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 }
 
 
-function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
+function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, $mode)
 {
 	global $db,$conf;
 	$inventory->amount_actual = 0;
@@ -514,28 +514,30 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
         $product = & $TInventorydet->product;
 		$stock = $TInventorydet->qty_stock;
 		
-		
-		$product->load_stock();
-		$lotstotal = 0;
-		if (count($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch))
+		if ($inventory->per_batch)
 		{
-		    foreach ($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch as $lot => $details)
-		    {
-		        $lotstotal += $details->qty;
-		    }
+    		$product->load_stock();
+    		$lotstotal = 0;
+    		if (count($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch))
+    		{
+    		    foreach ($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch as $lot => $details)
+    		    {
+    		        $lotstotal += $details->qty;
+    		    }
+    		}
+    		
+    		$lotparent = '';
+    		if ((float) $lotstotal !== (float) $stock)
+    		{
+    		    $lotparent = img_picto('Stock à corriger', 'error');
+    		}
+    // 		var_dump($lotstotal, $stock); exit;
 		}
-		
-		$lotparent = '';
-		if ((float) $lotstotal !== (float) $stock)
-		{
-		    $lotparent = img_picto('Stock à corriger', 'error');
-		}
-// 		var_dump($lotstotal, $stock); exit;
 		
         $pmp = $TInventorydet->pmp;
 		$pmp_actual = $pmp * $stock;
 		$inventory->amount_actual+=$pmp_actual;
-
+		
         $last_pa = $TInventorydet->pa;
 		$current_pa = $TInventorydet->current_pa;
         
@@ -575,7 +577,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		        'produit' => ($TInventorydet->lot == '') ? $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label : $product->getNomUrl(1)
 		        ,'entrepot'=>$e->getNomUrl(1)
 		        ,'barcode' => $product->barcode
-		        ,'lot' => $TInventorydet->lot.(($TInventorydet->lot !== '') ? '<input class="enfant" type="hidden" id="prod_'.$k.'" value="'.$lastprodline.'">': $lotparent)
+		        ,'lot' => $TInventorydet->lot.(($TInventorydet->lot !== '') ? '<input class="enfant" type="hidden" id="prod_'.$k.'" value="'.$lastprodline.'">': (($mode == "edit") ? '<input type="hidden" id="prod_'.$k.'" value="'.$TInventorydet->getId().'"><a class="addBatch" href="javascript:addBatch('.$k.')">' . img_picto('Ajouter un lot', 'plus16@inventory') . '</a>&nbsp;' : '') . $lotparent)
 		        ,'qty' => ($TInventorydet->lot == '') ? '' : $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
 		        .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
 		        ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0

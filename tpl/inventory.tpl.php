@@ -18,7 +18,7 @@
         }).done(function(data) {
             $('#qty_view_'+k).html(data);
             <?php 
-            if($conf->productbatch->enabled)
+            if($view['per_batch'])
             {
             ?>
             	parentProdline = $('#prod_'+k).val();
@@ -90,6 +90,75 @@
        }
         
     }
+
+    function addBatch(k)
+    {
+        var prodline = $('#qty_view_'+k).parent().parent();
+        
+        if ($('#new_batch_'+k).length == 0)
+        {
+            var html = '';
+            html+= '<tr style="background-color: #e6cece;"><td>Nouveau lot</td><td></td>';
+            <?php if (! empty($conf->barcode->enabled)) { ?>
+            html+= '<td align="center" style="background-color: #e8e8ff;"></td>';
+            <?php } ?>
+            html+= '<td align="center" style="background-color: #e8e8ff;"><input type="texte" value="" id="new_batch_'+k+'"></td>';
+            html+= '<td align="center" style="background-color: #e8e8ff;">0</td>';
+            html+= '<td align="center" style="background-color: #e8e8ff;"></td>';
+            html+= '<td align="center" style="background-color: #e8e8ff;"></td>';
+            html+= '<td align="center"><input type="texte" value="" id="new_batch_qty_'+k+'" value="0"></td>';
+            html+= '<td align="left"><a class="butAction" href="javascript:new_batch('+k+')">Envoyer</a></td>';
+            html+= '<td colspan="4"></td></tr>';
+            prodline.after(html);
+        }
+    }
+
+    function new_batch(k)
+    {
+        var lot = $('#new_batch_'+k).val();
+		var qty = $('#new_batch_qty_'+k).val();
+		var prodline = $('#qty_view_'+k).parent().parent();
+        var rowid = prodline.find('#prod_'+k).val();
+		//console.log(qty);
+		if (lot !== '') 
+		{
+			$.ajax({
+	            url:"script/interface.php"
+	            ,data:{
+	                'fk_inventory' : <?php echo $inventoryTPL['id']; ?>
+            		,'index' : k
+            		,'batch' : lot
+            		,'qty' : qty
+	                ,'put':'batch'
+	            }
+	            
+	        }).done(function(d) {
+	           	//onsole.log(d);
+	           	if (d == '1')
+	           	{
+	           		parentProdline = $('#prod_'+k).val();
+	            	parentProd = $('input[name=det_id_'+parentProdline+']').val();
+	                
+	                $.ajax({
+	                    url:"script/interface.php"
+	                    ,data:{	                        
+		                    'fk_det_inventory' : rowid
+	                        ,'qty': qty
+	                        ,'put':'qty'
+	                    }
+	                    
+	                }).done(function(data) {
+		                console.log(data);
+	                	document.location = '?id='+<?php echo $inventoryTPL['id']; ?>+'&action=edit';
+	                });
+					
+	           	}
+	        });
+		} else {
+			$('#new_batch_'+k).focus();
+		}
+    }
+    
 </script>
 
 <?php if ($view['is_already_validate'] != 1) { ?>
@@ -232,7 +301,9 @@
 $(document).ready(function(){
 	$('.enfant').each(function(){
 		parentProdline = $(this).val();
-		$('#qty_view_'+parentProdline).parent().parent().find('td').last().find('a').hide()
+		tr = $('#qty_view_'+parentProdline).parent().parent();
+	
+		tr.find('td').last().find('a').hide();
 	});
 });
 </script>
