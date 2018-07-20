@@ -577,13 +577,13 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 		        'produit' => ($TInventorydet->lot == '') ? $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label : $product->getNomUrl(1)
 		        ,'entrepot'=>$e->getNomUrl(1)
 		        ,'barcode' => $product->barcode
-		        ,'lot' => $TInventorydet->lot.(($TInventorydet->lot !== '') ? '<input class="enfant" type="hidden" id="prod_'.$k.'" value="'.$lastprodline.'">': (($mode == "edit") ? '<input type="hidden" id="prod_'.$k.'" value="'.$TInventorydet->getId().'"><a class="addBatch" href="javascript:addBatch('.$k.')">' . img_picto('Ajouter un lot', 'plus16@inventory') . '</a>&nbsp;' : '') . $lotparent)
+		        ,'lot' => $TInventorydet->lot.(($TInventorydet->lot !== '') ? '<input class="enfant" type="hidden" id="prod_'.$k.'" value="'.$lastprodline.'">': (($mode == "edit") ? '<input type="hidden" id="prod_'.$k.'" value="'.$TInventorydet->getId().'"><input type="hidden" id="prod_line_'.$k.'" value="'.$TInventorydet->getId().'"><a class="addBatch" href="javascript:addBatch('.$k.')">' . img_picto('Ajouter un lot', 'plus16@inventory') . '</a>&nbsp;' : '') . $lotparent)
 		        ,'qty' => ($TInventorydet->lot == '') ? '' : $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
 		        .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
 		        ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
 		        ,'qty_stock' => $stock
 		        ,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-		        ,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
+		        ,'action' => $user->rights->inventory->write ? '<a id="delline_'.$k.'" onclick="javascript:deleteLine('.$k.')" href="#" data-href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
 		        ,'pmp_stock'=>round($pmp_actual,2)
 		        ,'pmp_actual'=> round($pmp * $TInventorydet->qty_view,2)
 		        ,'pmp_new'=>($TInventorydet->lot == '') ? (!empty($user->rights->inventory->changePMP) ?  $form->texte('', 'new_pmp['.$k.']',$TInventorydet->new_pmp, 8, 0, "style='text-align:right;'")

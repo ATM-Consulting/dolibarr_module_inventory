@@ -91,6 +91,35 @@
         
     }
 
+	function deleteLine(k)
+	{
+		if (confirm('Confirmez-vous la suppression de la ligne ?')) {
+			qty = 0;
+			qty-= parseFloat($('#qty_view_'+k).html());
+			if($('#prod_line_'+k).length !== 0)
+			{
+				parentProd = $('#prod_line_'+k).val();
+			} else {
+				parentProdline = $('#prod_'+k).val();
+	        	parentProd = $('input[name=det_id_'+parentProdline+']').val();
+			}
+            $.ajax({
+                url:"script/interface.php"
+                ,data:{
+                    'fk_det_inventory' : parentProd
+                    ,'qty': qty
+                    ,'put':'qty'
+                }
+                
+            }).done(function(data) {
+                console.log(data)
+            	document.location = $('#delline_'+k).attr('data-href');
+            });
+		}
+		
+		
+	}
+    
     function addBatch(k)
     {
         var prodline = $('#qty_view_'+k).parent().parent();
