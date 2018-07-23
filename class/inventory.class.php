@@ -334,7 +334,7 @@ class TInventory extends TObjetStd
 						
 				$href = dol_buildpath('/inventory/inventory.php?id='.$this->getId().'&action=view', 1);
 				
-				if (! $this->per_batch) {
+				if (! $this->per_batch || !$product->hasbatch()) {
     				if(empty($this->title))
     					$this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
     				else
