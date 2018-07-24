@@ -92,7 +92,9 @@ function _action()
 			foreach($Tab as &$row) {
 			
                 $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot, GETPOST('includeWithStockPMP')!='' );
-                if($inventoryWithBatchDetail) $inventory->add_batch($PDOdb, $row->fk_product, $row->fk_entrepot, $inventory->get_date('date_inventory', 'Y-m-d'), GETPOST('includeWithStockPMP')!='' );
+                $product = new Product($db);
+                $product->fetch($row->fk_product);
+                if($inventoryWithBatchDetail && $product->hasbatch()) $inventory->add_batch($PDOdb, $row->fk_product, $row->fk_entrepot, $inventory->get_date('date_inventory', 'Y-m-d'), GETPOST('includeWithStockPMP')!='' );
 			}
 			
 			$inventory->save($PDOdb);
@@ -514,7 +516,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
         $product = & $TInventorydet->product;
 		$stock = $TInventorydet->qty_stock;
 		
-		if ($inventory->per_batch)
+		if ($inventory->per_batch && $product->hasbatch())
 		{
     		$product->load_stock();
     		$lotstotal = 0;
@@ -577,8 +579,8 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 		        'produit' => ($TInventorydet->lot == '') ? $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label : $product->getNomUrl(1)
 		        ,'entrepot'=>$e->getNomUrl(1)
 		        ,'barcode' => $product->barcode
-		        ,'lot' => $TInventorydet->lot.(($TInventorydet->lot !== '') ? '<input class="enfant" type="hidden" id="prod_'.$k.'" value="'.$lastprodline.'">': (($mode == "edit") ? '<input type="hidden" id="prod_'.$k.'" value="'.$TInventorydet->getId().'"><input type="hidden" id="prod_line_'.$k.'" value="'.$TInventorydet->getId().'"><a class="addBatch" href="javascript:addBatch('.$k.')">' . img_picto('Ajouter un lot', 'plus16@inventory') . '</a>&nbsp;' : '') . $lotparent)
-		        ,'qty' => ($TInventorydet->lot == '') ? '' : $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
+		        ,'lot' => $TInventorydet->lot.(($TInventorydet->lot !== '') ? '<input class="enfant" type="hidden" id="prod_'.$k.'" value="'.$lastprodline.'">': (($mode == "edit" && $product->hasbatch()) ? '<input type="hidden" id="prod_'.$k.'" value="'.$TInventorydet->getId().'"><input type="hidden" id="prod_line_'.$k.'" value="'.$TInventorydet->getId().'"><a class="addBatch" href="javascript:addBatch('.$k.')">' . img_picto('Ajouter un lot', 'plus16@inventory') . '</a>&nbsp;' : '') . $lotparent)
+		        ,'qty' => ($TInventorydet->lot == '' && $product->hasbatch()) ? '' : $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
 		        .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
 		        ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
 		        ,'qty_stock' => $stock
