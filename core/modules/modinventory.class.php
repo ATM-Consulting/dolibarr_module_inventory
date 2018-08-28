@@ -58,7 +58,7 @@ class modinventory extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module inventory";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.5.0';
+		$this->version = '1.6.0';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -250,7 +250,7 @@ class modinventory extends DolibarrModules
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=stock',			                // Put 0 if this is a top menu
 								'type'=>'left',			                // This is a Top menu entry
 								'titre'=>'Liste des inventaires',
-								'mainmenu'=>'inventory',
+								'mainmenu'=>'products',
 								'leftmenu'=>'inventory',
 								'url'=>'/inventory/inventory.php?action=list',
 								'langs'=>'inventory@inventory',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
@@ -264,7 +264,7 @@ class modinventory extends DolibarrModules
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=stock',			                // Put 0 if this is a top menu
 								'type'=>'left',			                // This is a Top menu entry
 								'titre'=>'Nouvel inventaire',
-								'mainmenu'=>'inventory',
+								'mainmenu'=>'products',
 								'leftmenu'=>'inventory',
 								'url'=>'/inventory/inventory.php?action=create',
 								'langs'=>'inventory@inventory',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.

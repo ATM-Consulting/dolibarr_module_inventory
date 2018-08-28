@@ -76,7 +76,7 @@ function inventorySelectProducts(&$PDOdb, &$inventory)
 	
 	ob_start();
 	$form = new Form($db);
-	$form->select_produits(-1, 'fk_product');
+	$form->select_produits(-1, 'fk_product', 0, (int) $conf->global->INVENTORY_NB_PRODUCT_IN_SELECT,0,-1);
 	
 	// Il nous faut impérativement une liste custom car il ne faut que les entrepôts de la famille de celui qu'on inventorie
 	$TChildWarehouses = array($inventory->fk_warehouse);
@@ -85,12 +85,12 @@ function inventorySelectProducts(&$PDOdb, &$inventory)
 	if(method_exists($e, 'get_children_warehouses')) $e->get_children_warehouses($e->id, $TChildWarehouses);
 	
 	$Tab = array();
-	$sql = 'SELECT rowid, label
+	$sql = 'SELECT rowid, '.((float)DOL_VERSION >= 7 ? 'ref' : 'label').'
 			FROM '.MAIN_DB_PREFIX.'entrepot WHERE rowid IN('.implode(', ', $TChildWarehouses).')';
 	if(method_exists($e, 'get_children_warehouses')) $sql.= ' ORDER BY fk_parent';
 	$resql = $db->query($sql);
 	while($res = $db->fetch_object($resql)) {
-		$Tab[$res->rowid] = $res->label;
+		$Tab[$res->rowid] = (float)DOL_VERSION >= 7 ? $res->ref : $res->label;
 	}
 	print '&nbsp;&nbsp;&nbsp;';
 	print 'Entrepôt : '.$form::selectarray('fk_warehouse', $Tab);

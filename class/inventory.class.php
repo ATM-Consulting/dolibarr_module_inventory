@@ -155,17 +155,28 @@ class TInventory extends TObjetStd
         
     }
     
-    function add_product(&$PDOdb, $fk_product, $fk_entrepot='') {
-        
+    function add_product(&$PDOdb, $fk_product, $fk_entrepot='', $addWithCurrentDetails = false) {
+  	global $langs;
+	if(empty($fk_product)) {
+		setEventMessages($langs->trans('ErrorNoSelectedProductToAdd'), 'errors');
+		return false;
+	}
+      
         $k = $this->addChild($PDOdb, 'TInventorydet');
         $det =  &$this->TInventorydet[$k];
         
         $det->fk_inventory = $this->getId();
         $det->fk_product = $fk_product;
-		$det->fk_warehouse = empty($fk_entrepot) ? $this->fk_warehouse : $fk_entrepot;
-        
+	$det->fk_warehouse = empty($fk_entrepot) ? $this->fk_warehouse : $fk_entrepot;
+//        var_dump($det);exit;
         $det->load_product();
                 
+        if($addWithCurrentDetails) {
+        	$det->product->load_stock();
+        	$det->qty_view = $det->product->stock_warehouse[$fk_entrepot]->real;
+        	$det->new_pmp= $det->product->pmp;
+        }
+        
         $date = $this->get_date('date_inventory', 'Y-m-d');
         if(empty($date))$date = $this->get_date('date_cre', 'Y-m-d'); 
         $det->setStockDate($PDOdb, $date , $fk_entrepot);
@@ -302,7 +313,7 @@ class TInventorydet extends TObjetStd
 	{
 		global $conf;
 		
-		$res = parent::load($PDOdb, $id);
+		$res = parent::load($PDOdb, $id, $loadChild);
 		$this->load_product();
         $this->fetch_current_pa();
 			
@@ -334,7 +345,6 @@ class TInventorydet extends TObjetStd
 		
         $this->qty_stock = $stock;
         $this->pmp = $pmp;
-        
         $last_pa = 0;
         $sql = "SELECT price FROM ".MAIN_DB_PREFIX."stock_mouvement 
                 WHERE fk_entrepot=".$fk_warehouse." 
@@ -358,19 +368,19 @@ class TInventorydet extends TObjetStd
 	function getPmpStockFromDate(&$PDOdb, $date, $fk_warehouse){
 		
 		$res = $this->product->load_stock();
-		
+//		var_dump($res, $this->product);
 		if($res>0) {
 			$stock = isset($this->product->stock_warehouse[$fk_warehouse]->real) ? $this->product->stock_warehouse[$fk_warehouse]->real : 0;
-			
-			if((float)DOL_VERSION<4.0) {
-				$pmp = isset($this->product->stock_warehouse[$fk_warehouse]->pmp) ? $this->product->stock_warehouse[$fk_warehouse]->pmp : 0; 
+
+			if(isset($this->product->stock_warehouse[$fk_warehouse]->pmp))$this->product->stock_warehouse[$fk_warehouse]->pmp = (float)$this->product->stock_warehouse[$fk_warehouse]->pmp;
+
+			if(empty($this->product->stock_warehouse[$fk_warehouse]->pmp)) $pmp = (float)$this->product->pmp;
+			else {
+				$pmp = $this->product->stock_warehouse[$fk_warehouse]->pmp;
 			}
-			else{
-				$pmp = $this->product->pmp;
-			}
-			
+
 		}
-		
+
 		//On récupère tous les mouvements de stocks du produit entre aujourd'hui et la date de l'inventaire
 		$sql = "SELECT value, price
 				FROM ".MAIN_DB_PREFIX."stock_mouvement
@@ -387,25 +397,20 @@ class TInventorydet extends TObjetStd
 		//Pour chacun des mouvements on recalcule le PMP et le stock physique
 		foreach($TMouvementStock as $mouvement){
 			
-			//150
-			//if($this->product->id==394) echo 'laststock = '.$stock.'<br>';
-			
-			//9.33
-			//if($this->product->id==394) echo 'lastpmp = '.$pmp.'<br>';
-			$price = ($mouvement->price>0 && $mouvement->value>0) ? $mouvement->price : $lastpmp;  
+			$price = ($mouvement->price>0 && $mouvement->value>0) ? $mouvement->price : $lastpmp;  // prix du mouvement si positif
 				
-			$stock_value = $laststock * $lastpmp;
+			$stock_value = $laststock * $lastpmp; // valeur du stock
 			
-			$laststock -= $mouvement->value;
+			$laststock -= $mouvement->value; // recalcul du stock en fonction du mouvement
 			
-			$last_stock_value = $stock_value - ($mouvement->value * $price);	
-			
-			$lastpmp = ($laststock != 0) ? $last_stock_value / $laststock : $lastpmp;
-			 
-			
+			$last_stock_value = $stock_value - ($mouvement->value * $price); // valorisation du stock en fonction du mouvement
+			if($last_stock_value < 0) $last_stock_value = 0;
 
+			//if($last_stock_value<0 || $laststock<0) null; 
+			$lastpmp = ($laststock != 0) ? $last_stock_value / $laststock : $lastpmp; // S'il y a un stock, alors son PMP est sa valeur totale / nombre de pièce
+			 
 		}
-		
+
 		return array($lastpmp,$laststock);
 	}
     

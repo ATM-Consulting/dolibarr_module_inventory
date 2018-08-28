@@ -89,7 +89,7 @@ function _action()
 			
 			foreach($Tab as &$row) {
 			
-                $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot);
+                $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot, GETPOST('includeWithStockPMP')!='' );
 			}
 			
 			$inventory->save($PDOdb);
@@ -323,6 +323,7 @@ function _action()
 
 function _liste(&$user, &$db, &$conf, &$langs) 
 {	
+	global $dol_version;
 	llxHeader('',$langs->trans('inventoryListTitle'),'','');
 	
 	$form=new TFormCore;
@@ -330,14 +331,14 @@ function _liste(&$user, &$db, &$conf, &$langs)
 	$inventory = new TInventory;
 	$r = new TSSRenderControler($inventory);
 
-	$sql="SELECT i.rowid, e.label, i.date_inventory, i.fk_warehouse, i.date_cre, i.date_maj, i.status
+	$sql="SELECT i.rowid, ".($dol_version >= 7 ? 'e.ref' : 'e.label').", i.date_inventory, i.fk_warehouse, i.date_cre, i.date_maj, i.status
 		  FROM ".MAIN_DB_PREFIX."inventory i
 		  LEFT JOIN ".MAIN_DB_PREFIX."entrepot e ON (e.rowid = i.fk_warehouse)
 		  WHERE i.entity=".(int) $conf->entity;
 	
  	if (!__get('TListTBS', 0, 'int')) $sql .= " ORDER BY i.rowid DESC";
-	
-	$THide = array('label');
+	$hide = $dol_version >= 7 ? 'ref' : 'label';
+	$THide = array($hide);
 
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'form', 'POST');
 
@@ -351,7 +352,7 @@ function _liste(&$user, &$db, &$conf, &$langs)
 		)
 		,'subQuery'=>array()
 		,'link'=>array(
-			'fk_warehouse'=>'<a href="'.DOL_URL_ROOT.$lien.'?id=@val@">'.img_picto('','object_stock.png','',0).' @label@</a>'
+			'fk_warehouse'=>'<a href="'.DOL_URL_ROOT.$lien.'?id=@val@">'.img_picto('','object_stock.png','',0).' @'.($dol_version >= 7 ? 'ref' : 'label').'@</a>'
 		)
 		,'translate'=>array()
 		,'hide'=>$THide
@@ -441,6 +442,11 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
             <td><input type="checkbox" name="OnlyProdsInStock" value="1"></td> 
         </tr>
         
+        <tr>
+            <td><?php echo $langs->trans('IncludeProdWithCurrentStockValue') ?></td>
+            <td><input type="checkbox" name="includeWithStockPMP" value="1"></td> 
+        </tr>
+        
     </table>
     <?php
     
@@ -512,7 +518,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 {
-	global $db, $sortfield, $sortorder;
+	global $db, $conf, $sortfield, $sortorder;
 	$inventory->amount_actual = 0;
 	
 	$TCacheEntrepot = array();
@@ -530,6 +536,11 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
         $last_pa = $TInventorydet->pa;
 		$current_pa = $TInventorydet->current_pa;
         
+		if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL) && empty($pmp_actual)) {
+			if(!empty($last_pa)){ $pmp_actual = $last_pa* $stock;$pmp=$last_pa;}
+			else if(!empty($current_pa)) {$pmp_actual = $current_pa* $stock; $pmp=$current_pa;}
+		}
+
 		$e = new Entrepot($db);
 		if(!empty($TCacheEntrepot[$TInventorydet->fk_warehouse])) $e = $TCacheEntrepot[$TInventorydet->fk_warehouse];
 		elseif($e->fetch($TInventorydet->fk_warehouse) > 0) $TCacheEntrepot[$e->id] = $e;
@@ -588,6 +599,11 @@ function exportCSV(&$inventory) {
         $last_pa = $TInventorydet->pa;
         $current_pa = $TInventorydet->current_pa;
 		
+	if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL) && empty($pmp_actual)) {
+		if(!empty($last_pa)){ $pmp_actual = $last_pa* $stock;$pmp=$last_pa;}
+		else if(!empty($current_pa)) {$pmp_actual = $current_pa* $stock; $pmp=$current_pa;}
+	}
+	
 		if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) {
 			$row=array(
 				'produit' => $product->ref
@@ -713,24 +729,24 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
             <?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">&nbsp;</th>
 			<?php } ?>
-            <th align="right"><?php echo price($total_pmp) ?></th>
-            <th align="right"><?php echo price($total_pa) ?></th>
+            <th align="right" nowrap="nowrap"><?php echo price($total_pmp) ?></th>
+            <th align="right" nowrap="nowrap"><?php echo price($total_pa) ?></th>
             <?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
 	              		echo '<th align="right">'.price($total_current_pa).'</th>';   	
 					 }
 			?>
             <th>&nbsp;</th>
-            <th align="right"><?php echo price($total_pmp_actual) ?></th>
+            <th align="right" nowrap="nowrap"><?php echo price($total_pmp_actual) ?></th>
             <?php
             if(!empty($user->rights->inventory->changePMP)) {
                	echo '<th>&nbsp;</th>';	
 			}
 			?>
-            <th align="right"><?php echo price($total_pa_actual) ?></th>
+            <th align="right" nowrap="nowrap"><?php echo price($total_pa_actual) ?></th>
             <?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
-	              		echo '<th align="right">'.price($total_current_pa_actual).'</th>';   	
+	              		echo '<th align="right" nowrap="nowrap">'.price($total_current_pa_actual).'</th>';   	
 					 }
 			?>
 
@@ -799,7 +815,7 @@ function _headerList($view) {
 					 
 				?>
 	    	    <th>&nbsp;</th>
-	    	    <th>PMP</th>
+	    	    <th>PMP<?php if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL)) echo img_info($langs->trans('UsePAifnull')); ?></th>
 	    	    <?php
 	    	    if(!empty($user->rights->inventory->changePMP)) {
 	    	    	echo '<th rel="newPMP">'.$langs->trans('ColumnNewPMP').'</th>';

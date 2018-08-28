@@ -105,10 +105,10 @@
         $i=1;
         foreach ($TInventory as $k=>$row) { 
             
-            $total_pmp+=$row['pmp_stock'];
-            $total_pa+=$row['pa_stock'];
-            $total_pmp_actual+=$row['pmp_actual'];
-            $total_pa_actual+=$row['pa_actual'];
+            $total_pmp+=round($row['pmp_stock'],2);
+            $total_pa+=round($row['pa_stock'],2);
+            $total_pmp_actual+=round($row['pmp_actual'],2);
+            $total_pa_actual+=round($row['pa_actual'],2);
             
 			if($i%20 === 0)
 			{
@@ -141,7 +141,7 @@
                     <td align="right"><?php echo price($row['pmp_actual']); ?></td>
                     <?php
                     if(!empty($user->rights->inventory->changePMP)) {
-                    	echo '<td>'.$row['pmp_new'].'</td>';	
+                    	echo '<td align="right">'.$row['pmp_new'].'</td>';	
 					}
                     ?>
                     <td align="right"><?php echo price($row['pa_actual']); ?></td>

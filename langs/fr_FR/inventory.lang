@@ -34,6 +34,10 @@ inventoryOnDate=Inventaire au
 INVENTORY_DISABLE_VIRTUAL=Permet de ne pas déstocker les produits enfants des produits virtualisés lors de l'inventaire
 INVENTORY_USE_MIN_PA_IF_NO_LAST_PA=Donner la valorisation avec le prix d'achat courrant sur dernier PA nul
 INVENTORY_USE_INVENTORY_DATE_FROM_DATEMVT=Dater les mouvements d'inventaire à date de l'inventaire
+INVENTORY_NB_PRODUCT_IN_SELECT=Nombre de produit visible dans la liste déroulante (0 = pas de limite) si le paramétrage du module produit n'utilise pas l'auto-complétion
 inventoryChangePMPPermission=Changer la valeur du PMP d'un produit
 ColumnNewPMP=Nouveau PMP unitaire
 OnlyProdsInStock=Ne pas intégrer les produits qui n'ont pas de stock dans l'entrepôt sélectionné
+IncludeProdWithCurrentStockValue=Intégrer les produits avec leur stock actuel et PMP
+INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL=Utiliser le dernier prix d'achat ou le minimal pour PMP en cas de PMP nul
+UsePAifnull=Utilise le prix d'achat si null
