@@ -249,7 +249,7 @@ class modinventory extends DolibarrModules
 		// $r++;
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=stock',			                // Put 0 if this is a top menu
 								'type'=>'left',			                // This is a Top menu entry
-								'titre'=>'Liste des inventaires',
+								'titre'=>'inventoryListTitle',
 								'mainmenu'=>'inventory',
 								'leftmenu'=>'inventory',
 								'url'=>'/inventory/inventory.php?action=list',
@@ -263,7 +263,7 @@ class modinventory extends DolibarrModules
 		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=stock',			                // Put 0 if this is a top menu
 								'type'=>'left',			                // This is a Top menu entry
-								'titre'=>'Nouvel inventaire',
+								'titre'=>'inventoryCreate',
 								'mainmenu'=>'inventory',
 								'leftmenu'=>'inventory',
 								'url'=>'/inventory/inventory.php?action=create',
