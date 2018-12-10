@@ -1,5 +1,21 @@
 <?php 
 
+/* Copyright (C) 2018      Alexis LAURIER              <alexis@alexislaurier.fr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 require('config.php');
 
 ini_set('memory_limit', '512M');
@@ -525,7 +541,8 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
 			,'entrepot'=>$e->getNomUrl(1)
 			,'barcode' => $product->barcode
-			,'qty' => $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
+			,'qty' => ($form->type_aff!='view' ? '<a id="a_save_qty_minus_-'.$k.'" href="javascript:save_qty_minus('.$k.')">'.img_picto('Enlever', 'minus16@inventory').'</a>' : '' ).
+			($form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'"))
                         .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
 			,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
 			,'qty_stock' => $stock
@@ -808,3 +825,4 @@ function _headerList($view) {
 	} 
 	
 }
+

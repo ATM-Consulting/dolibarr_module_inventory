@@ -27,6 +27,35 @@
         
         
     }
+	
+	function save_qty_minus(k) {
+        
+        var $input = $('input[name="qty_to_add['+k+']"]');
+        var fk_det_inventory = $('input[name=det_id_'+k+']').val();
+        var qty = $input.val();
+        
+        $('#a_save_qty_minus_'+k).hide();
+        
+        $.ajax({
+            url:"script/interface.php"
+            ,data:{
+                'fk_det_inventory' : fk_det_inventory
+                ,'qty': -qty
+                ,'put':'qty'
+            }
+            
+        }).done(function(data) {
+            $('#qty_view_'+k).html(data);
+            $input.val(0);
+            $.jnotify("Quantité enlevée : "+qty, "mesgs" );
+            
+            $('#a_save_qty_'+k).show();
+            
+            hide_save_button();
+        });
+        
+        
+    }
     
     function save_pmp(k) {
     	
