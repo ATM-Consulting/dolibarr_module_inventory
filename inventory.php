@@ -417,11 +417,12 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
             <td><?php echo $langs->trans('SelectFournisseur') ?></td>
             <td><?php echo $formDoli->select_company('','fk_supplier','s.fournisseur = 1', 1) ?></td> 
         </tr>
+	<?php if((float)DOL_VERSION <= 3.9) { /*A partir de la 4.0, Dolibarr retire la ligne dans llx_product_stock dès qu'il n'y a plus de stock, donc seuls les produits ayant du stock sont pris en compte dans l'inventaire sans avoir à cocher la case*/ ?>
         <tr>
             <td><?php echo $langs->trans('OnlyProdsInStock') ?></td>
             <td><input type="checkbox" name="OnlyProdsInStock" value="1"></td> 
         </tr>
-        
+        <?php } ?>
         <tr>
             <td><?php echo $langs->trans('IncludeProdWithCurrentStockValue') ?></td>
             <td><input type="checkbox" name="includeWithStockPMP" value="1"></td> 
