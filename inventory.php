@@ -69,21 +69,22 @@ function _action()
 			$e->fetch($fk_warehouse);
 			$TChildWarehouses = array($fk_warehouse);
 			if(method_exists($e, 'get_children_warehouses')) $e->get_children_warehouses($fk_warehouse, $TChildWarehouses);
-			
-			$sql = 'SELECT ps.fk_product, ps.fk_entrepot 
-			     FROM '.MAIN_DB_PREFIX.'product_stock ps 
-			     INNER JOIN '.MAIN_DB_PREFIX.'product p ON (p.rowid = ps.fk_product) 
-                 LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)
-				 LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)
-			     WHERE ps.fk_entrepot IN ('.implode(', ', $TChildWarehouses).')';
-			
-            if($fk_category>0) $sql.= " AND cp.fk_categorie=".$fk_category;
-			if($fk_supplier>0) $sql.= " AND pfp.fk_soc=".$fk_supplier;
-			if($only_prods_in_stock>0) $sql.= ' AND ps.reel > 0';
-			
-			$sql.=' GROUP BY ps.fk_product, ps.fk_entrepot
-					ORDER BY p.ref ASC,p.label ASC';
-                 
+
+			$sql = 'SELECT p.rowid AS fk_product, sm.fk_entrepot, SUM(sm.value) AS qty';
+			$sql.= ' FROM '.MAIN_DB_PREFIX.'product p';
+			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_stock ps ON (p.rowid = ps.fk_product)';
+			$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'stock_mouvement sm ON (p.rowid = sm.fk_product)';
+			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)';
+			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)';
+			$sql.= ' WHERE sm.fk_entrepot IN ('.implode(', ', $TChildWarehouses).')';
+			if ($fk_category > 0) $sql.= ' AND AND cp.fk_categorie = '.$fk_category;
+			if ($fk_supplier > 0) $sql.= ' AND pfp.fk_soc = '.$fk_supplier;
+
+			$sql.= ' GROUP BY p.rowid, sm.fk_entrepot';
+
+			if ($only_prods_in_stock > 0) $sql.= ' HAVING qty > 0';
+
+			$sql.= ' ORDER BY p.ref ASC, p.label ASC';
                  
 			$Tab = $PDOdb->ExecuteAsArray($sql);
 			
