@@ -10,7 +10,7 @@ class TInventory extends TObjetStd
 		
 		$this->set_table( MAIN_DB_PREFIX.'inventory' );
     	 
-		$this->add_champs('fk_warehouse,entity,status',array('type'=>'integer','index'=>true));
+		$this->add_champs('fk_warehouse,entity,status,per_batch',array('type'=>'integer','index'=>true));
 		$this->add_champs('date_inventory',array('type'=>'date'));
         $this->add_champs('title');
         
@@ -166,7 +166,99 @@ class TInventory extends TObjetStd
         
     }
     
-    function correct_stock($fk_product, $id_entrepot, $nbpiece, $movement, $label='', $price=0, $inventorycode='')
+    function add_batch(&$PDOdb, $fk_product, $fk_entrepot='', $date, $addWithCurrentDetails = false) {
+        global $langs, $db;
+        if(empty($fk_product)) {
+            setEventMessages($langs->trans('ErrorNoSelectedProductToAdd'), 'errors');
+            return false;
+        }
+        $prod = new Product($db);
+        $prod->fetch($fk_product);
+        $prod->load_stock();
+        
+        $detailLot = $prod->stock_warehouse[$fk_entrepot]->detail_batch;
+//         var_dump($detailLot); exit; 
+        //On récupère tous les mouvements de stocks du produit entre aujourd'hui et la date de l'inventaire
+        $sql = "SELECT value, price, batch
+				FROM ".MAIN_DB_PREFIX."stock_mouvement
+				WHERE fk_product = ".$fk_product."
+					AND fk_entrepot = ".$fk_entrepot."
+					AND datem > '".date('Y-m-d 23:59:59',strtotime($date))."'
+				ORDER BY datem DESC";
+        
+//          echo $sql.'<br>'; exit;
+        $PDOdb->Execute($sql);
+        $TMouvementStock = $PDOdb->Get_All();
+        
+        $laststock = $stock;
+        $lastpmp = $pmp;
+        //Pour chacun des mouvements on recalcule le PMP et le stock physique
+        foreach($TMouvementStock as $mouvement){
+            
+            $price = ($mouvement->price>0 && $mouvement->value>0) ? $mouvement->price : $lastpmp;  // prix du mouvement si positif
+            
+            $stock_value = $laststock * $lastpmp; // valeur du stock
+            
+            $laststock -= $mouvement->value; // recalcul du stock en fonction du mouvement
+            $detailLot[$mouvement->batch]->qty -= $mouvement->value;
+            $last_stock_value = $stock_value - ($mouvement->value * $price); // valorisation du stock en fonction du mouvement
+            if($last_stock_value < 0) $last_stock_value = 0;
+            
+            //if($last_stock_value<0 || $laststock<0) null;
+            $lastpmp = ($laststock != 0) ? $last_stock_value / $laststock : $lastpmp; // S'il y a un stock, alors son PMP est sa valeur totale / nombre de pièce
+            
+        }
+        
+        $total_qty = 0;
+        foreach ($detailLot as $lot => $detail)
+        {
+//             var_dump($lot, $detail);exit;
+            $k = $this->addChild($PDOdb, 'TInventorydet');
+            $det =  &$this->TInventorydet[$k];
+            
+            $det->fk_inventory = $this->getId();
+            $det->fk_product = $fk_product;
+            $det->fk_warehouse = empty($fk_entrepot) ? $this->fk_warehouse : $fk_entrepot;
+            //        var_dump($det);exit;
+            $det->load_product();
+            $det->lot = $lot;
+            $det->qty_stock = $detail->qty;
+            $total_qty += $detail->qty;
+            
+            if($addWithCurrentDetails) {
+                $det->product->load_stock();
+                $det->qty_view = $det->product->stock_warehouse[$fk_entrepot]->real;
+                $det->new_pmp= $det->product->pmp;
+            }
+            
+            $date = $this->get_date('date_inventory', 'Y-m-d');
+            if(empty($date))$date = $this->get_date('date_cre', 'Y-m-d');
+//             $det->setStockDate($PDOdb, $date , $fk_entrepot);
+        }
+//         var_dump((float) $total_qty, (float) $prod->stock_warehouse[$fk_entrepot]->real); exit;
+        if ((float) $total_qty !== (float) $prod->stock_warehouse[$fk_entrepot]->real)
+        {
+            $k = $this->addChild($PDOdb, 'TInventorydet');
+            $det =  &$this->TInventorydet[$k];
+            
+            $det->fk_inventory = $this->getId();
+            $det->fk_product = $fk_product;
+            $det->fk_warehouse = empty($fk_entrepot) ? $this->fk_warehouse : $fk_entrepot;
+            //        var_dump($det);exit;
+            $det->load_product();
+            $det->lot = "NA";
+            $det->qty_stock = (float) $prod->stock_warehouse[$fk_entrepot]->real - $total_qty;
+            
+            if($addWithCurrentDetails) {
+                $det->product->load_stock();
+                $det->qty_view = $det->product->stock_warehouse[$fk_entrepot]->real;
+                $det->new_pmp= $det->product->pmp;
+            }
+        }
+        
+    }
+    
+    function correct_stock($fk_product, $id_entrepot, $nbpiece, $movement, $label='', $price=0, $inventorycode='', $batch='')
 	{
 		global $conf, $db, $langs, $user;
 		
@@ -183,7 +275,10 @@ class TInventory extends TObjetStd
 			$datem = empty($conf->global->INVENTORY_USE_INVENTORY_DATE_FROM_DATEMVT) ? dol_now() : $this->date_inventory;
 
 			$movementstock=new MouvementStock($db);
-			$result=$movementstock->_create($user,$fk_product,$id_entrepot,$op[$movement],$movement,$price,$label,$inventorycode, $datem);
+			if ($batch == '')
+			    $result=$movementstock->_create($user,$fk_product,$id_entrepot,$op[$movement],$movement,$price,$label,$inventorycode, $datem);
+			else
+			    $result=$movementstock->_create($user,$fk_product,$id_entrepot,$op[$movement],$movement,$price,$label,$inventorycode, $datem, '', '', $batch);
 			
 			if ($result >= 0)
 			{
@@ -239,10 +334,21 @@ class TInventory extends TObjetStd
 						
 				$href = dol_buildpath('/inventory/inventory.php?id='.$this->getId().'&action=view', 1);
 				
-				if(empty($this->title))
-					$this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
-				else
-					$this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStockWithNomInventaire', $href, $this->title));
+				if (! $this->per_batch || !$product->hasbatch()) {
+    				if(empty($this->title))
+    					$this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
+    				else
+    					$this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStockWithNomInventaire', $href, $this->title));
+				}
+				else {
+				    if($TInventorydet->lot !== '')
+				    {
+				        if(empty($this->title))
+				            $this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()), 0 , '', $TInventorydet->lot);
+			            else
+			                $this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStockWithNomInventaire', $href, $this->title), 0 , '', $TInventorydet->lot);
+				    }
+				}
 			}
 		}
 
@@ -279,6 +385,7 @@ class TInventorydet extends TObjetStd
     	$this->TChamps = array(); 	  
 		$this->add_champs('fk_inventory,fk_warehouse,fk_product,entity', 'type=entier;');
 		$this->add_champs('qty_view,qty_stock,qty_regulated,pmp,pa,new_pmp', 'type=float;');
+		$this->add_champs('lot', 'type=text;');
 
 		$this->_init_vars();
 	    $this->start();

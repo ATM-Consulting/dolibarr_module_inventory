@@ -80,7 +80,9 @@ function _action()
             $fk_supplier = (int)GETPOST('fk_supplier');
             $fk_warehouse = (int)GETPOST('fk_warehouse');
 			$only_prods_in_stock = (int)GETPOST('OnlyProdsInStock');
-            
+			$inventoryWithBatchDetail = (int)GETPOST('inventoryWithBatchDetail');
+			$inventory->per_batch = $inventoryWithBatchDetail;
+			
 			$e = new Entrepot($db);
 			$e->fetch($fk_warehouse);
 			$TChildWarehouses = array($fk_warehouse);
@@ -106,6 +108,9 @@ function _action()
 			foreach($Tab as &$row) {
 			
                 $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot, GETPOST('includeWithStockPMP')!='' );
+                $product = new Product($db);
+                $product->fetch($row->fk_product);
+                if($inventoryWithBatchDetail && $product->hasbatch()) $inventory->add_batch($PDOdb, $row->fk_product, $row->fk_entrepot, $inventory->get_date('date_inventory', 'Y-m-d'), GETPOST('includeWithStockPMP')!='' );
 			}
 			
 			$inventory->save($PDOdb);
@@ -442,7 +447,12 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
             <td><?php echo $langs->trans('IncludeProdWithCurrentStockValue') ?></td>
             <td><input type="checkbox" name="includeWithStockPMP" value="1"></td> 
         </tr>
-        
+        <?php if($conf->productbatch->enabled)  { ?>
+        <tr>
+            <td><?php echo $langs->trans('InventoryWithBatchDetail') ?></td>
+            <td><input type="checkbox" name="inventoryWithBatchDetail" value="1"></td> 
+        </tr>
+        <?php } ?>
     </table>
     <?php
     
@@ -467,7 +477,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 	$form->Set_typeaff($mode);
 	
 	$TInventory = array();
-	$Tinventory = _fiche_ligne($db, $user, $langs, $inventory, $TInventory, $form);
+	$Tinventory = _fiche_ligne($db, $user, $langs, $inventory, $TInventory, $form, $mode);
 	
 	$TBS=new TTemplateTBS();
 	$TBS->TBS->protect=false;
@@ -495,6 +505,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 		,'url' => dol_buildpath('/inventory/inventory.php', 1)
 		,'can_validate' => (int) $user->rights->inventory->validate
 		,'is_already_validate' => (int) $inventory->status
+	    ,'per_batch' => $inventory->per_batch
 		,'token'=>$_SESSION['newtoken']
 	);
 	
@@ -508,7 +519,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 }
 
 
-function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
+function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, $mode)
 {
 	global $db,$conf;
 	$inventory->amount_actual = 0;
@@ -520,11 +531,31 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 	    
         $product = & $TInventorydet->product;
 		$stock = $TInventorydet->qty_stock;
-	
+		
+		if ($inventory->per_batch && $product->hasbatch())
+		{
+    		$product->load_stock();
+    		$lotstotal = 0;
+    		if (count($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch))
+    		{
+    		    foreach ($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch as $lot => $details)
+    		    {
+    		        $lotstotal += $details->qty;
+    		    }
+    		}
+    		
+    		$lotparent = '';
+    		if ((float) $lotstotal !== (float) $stock)
+    		{
+    		    $lotparent = img_picto('Stock à corriger', 'error');
+    		}
+    // 		var_dump($lotstotal, $stock); exit;
+		}
+		
         $pmp = $TInventorydet->pmp;
 		$pmp_actual = $pmp * $stock;
 		$inventory->amount_actual+=$pmp_actual;
-
+		
         $last_pa = $TInventorydet->pa;
 		$current_pa = $TInventorydet->current_pa;
         
@@ -536,30 +567,85 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 		$e = new Entrepot($db);
 		if(!empty($TCacheEntrepot[$TInventorydet->fk_warehouse])) $e = $TCacheEntrepot[$TInventorydet->fk_warehouse];
 		elseif($e->fetch($TInventorydet->fk_warehouse) > 0) $TCacheEntrepot[$e->id] = $e;
-		
-		$TInventory[]=array(
-			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
-			,'entrepot'=>$e->getNomUrl(1)
-			,'barcode' => $product->barcode
-			,'qty' => ($form->type_aff!='view' ? '<a id="a_save_qty_minus_-'.$k.'" href="javascript:save_qty_minus('.$k.')">'.img_picto('Enlever', 'minus16@inventory').'</a>' : '' ).
+		if($inventory->per_batch)  {
+		    
+		    if ($TInventorydet->lot == '') $lastprodline = $k;
+		    
+		    $TInventory[]=array(
+// 		        'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
+// 		        ,'entrepot'=>$e->getNomUrl(1)
+// 		        ,'barcode' => $product->barcode
+// 		        ,'qty' => ($TInventorydet->lot == '') ? '' : $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
+// 		        .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
+// 		        ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+// 		        ,'qty_stock' => $stock
+// 		        ,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+// 		        ,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
+// 		        ,'pmp_stock'=>round($pmp_actual,2)
+// 		        ,'pmp_actual'=> round($pmp * $TInventorydet->qty_view,2)
+// 		        ,'pmp_new'=> ''
+// 		        ,'pa_stock'=>round($last_pa * $stock,2)
+// 		        ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
+// 		        ,'current_pa_stock'=>round($current_pa * $stock,2)
+// 		        ,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
+// 		        ,'lot' => $TInventorydet->lot
+// 		        ,'k'=>$k
+// 		        ,'id'=>$TInventorydet->getId()
+
+		        'produit' => ($TInventorydet->lot == '') ? $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label : $product->getNomUrl(1)
+		        ,'entrepot'=>$e->getNomUrl(1)
+		        ,'barcode' => $product->barcode
+		        ,'lot' => $TInventorydet->lot.(($TInventorydet->lot !== '') ? '<input class="enfant" type="hidden" id="prod_'.$k.'" value="'.$lastprodline.'">': (($mode == "edit" && $product->hasbatch()) ? '<input type="hidden" id="prod_'.$k.'" value="'.$TInventorydet->getId().'"><input type="hidden" id="prod_line_'.$k.'" value="'.$TInventorydet->getId().'"><a class="addBatch" href="javascript:addBatch('.$k.')">' . img_picto('Ajouter un lot', 'plus16@inventory') . '</a>&nbsp;' : '') . $lotparent)
+		        ,'qty' => ($TInventorydet->lot == '' && $product->hasbatch()) ? '' : $form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'")
+		        .($form->type_aff!='view' ? '<a id="a_save_qty_minus_-'.$k.'" href="javascript:save_qty_minus('.$k.')">'.img_picto('Enlever', 'minus16@inventory').'</a>' : '' ).
 			($form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'"))
                         .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
-			,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
-			,'qty_stock' => $stock
-			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
-			,'pmp_stock'=>round($pmp_actual,2)
-            ,'pmp_actual'=> round($pmp * $TInventorydet->qty_view,2)
-			,'pmp_new'=>(!empty($user->rights->inventory->changePMP) ?  $form->texte('', 'new_pmp['.$k.']',$TInventorydet->new_pmp, 8, 0, "style='text-align:right;'")
-                        .($form->type_aff!='view' ? '<a id="a_save_new_pmp_'.$k.'" href="javascript:save_pmp('.$k.')">'.img_picto($langs->trans('Save'), 'bt-save.png@inventory').'</a>' : '') : '' )
-            ,'pa_stock'=>round($last_pa * $stock,2)
-            ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
-			,'current_pa_stock'=>round($current_pa * $stock,2)
-			,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
-          
-            ,'k'=>$k
-            ,'id'=>$TInventorydet->getId()
-		);
+		        ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+		        ,'qty_stock' => $stock
+		        ,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+		        ,'action' => $user->rights->inventory->write ? '<a id="delline_'.$k.'" onclick="javascript:deleteLine('.$k.')" href="#" data-href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
+		        ,'pmp_stock'=>round($pmp_actual,2)
+		        ,'pmp_actual'=> round($pmp * $TInventorydet->qty_view,2)
+		        ,'pmp_new'=>($TInventorydet->lot == '') ? (!empty($user->rights->inventory->changePMP) ?  $form->texte('', 'new_pmp['.$k.']',$TInventorydet->new_pmp, 8, 0, "style='text-align:right;'")
+		            .($form->type_aff!='view' ? '<a id="a_save_new_pmp_'.$k.'" href="javascript:save_pmp('.$k.')">'.img_picto($langs->trans('Save'), 'bt-save.png@inventory').'</a>' : '') : '' ) : ""
+		        ,'pa_stock'=>round($last_pa * $stock,2)
+		        ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
+		        ,'current_pa_stock'=>round($current_pa * $stock,2)
+		        ,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
+		        ,'k'=>$k
+		        ,'id'=>$TInventorydet->getId()
+		    );
+		    
+		    
+		    
+		    //var_dump($product->stock_warehouse[$e->id]->detail_batch); exit;
+		    
+		} else {
+		    $TInventory[]=array(
+    			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
+    			,'entrepot'=>$e->getNomUrl(1)
+    			,'barcode' => $product->barcode
+    			,'qty' => ($form->type_aff!='view' ? '<a id="a_save_qty_minus_-'.$k.'" href="javascript:save_qty_minus('.$k.')">'.img_picto('Enlever', 'minus16@inventory').'</a>' : '' ).
+			($form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'"))
+                        .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
+    			,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+    			,'qty_stock' => $stock
+    			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+    			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
+    			,'pmp_stock'=>round($pmp_actual,2)
+                ,'pmp_actual'=> round($pmp * $TInventorydet->qty_view,2)
+    			,'pmp_new'=>(!empty($user->rights->inventory->changePMP) ?  $form->texte('', 'new_pmp['.$k.']',$TInventorydet->new_pmp, 8, 0, "style='text-align:right;'")
+                            .($form->type_aff!='view' ? '<a id="a_save_new_pmp_'.$k.'" href="javascript:save_pmp('.$k.')">'.img_picto($langs->trans('Save'), 'bt-save.png@inventory').'</a>' : '') : '' )
+                ,'pa_stock'=>round($last_pa * $stock,2)
+                ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
+    			,'current_pa_stock'=>round($current_pa * $stock,2)
+    			,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
+              
+                ,'k'=>$k
+                ,'id'=>$TInventorydet->getId()
+    		);
+		}
+		
 	}
 	
 }
@@ -711,7 +797,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 
 }
 function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actual, $total_current_pa,$total_current_pa_actual) {
-	global $conf,$user,$langs;
+    global $conf,$user,$langs;
 	
 	
 	    if ($view['can_validate'] == 1) { ?>
@@ -719,6 +805,9 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
             <th colspan="3">&nbsp;</th>
             <?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">&nbsp;</td>
+			<?php } ?>
+			<?php if($view['per_batch']) {?>
+    				<th align="center">&nbsp;</th>
 			<?php } ?>
             <th align="right" nowrap="nowrap"><?php echo price($total_pmp) ?></th>
             <th align="right" nowrap="nowrap"><?php echo price($total_pa) ?></th>
@@ -749,7 +838,7 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <?php } 
 }
 function _headerList($view) {
-	global $conf,$user,$langs;
+    global $conf,$user,$langs;
 	
 	?>
 			<tr style="background-color:#dedede;">
@@ -759,6 +848,9 @@ function _headerList($view) {
 					<th align="center">Code-barre</td>
 				<?php } ?>
 				<?php if ($view['can_validate'] == 1) { ?>
+					<?php if($view['per_batch']) {?>
+						<th align="center">N° de lots</th>
+					<?php } ?>
 					<th align="center" width="20%">Quantité théorique</th>
 					<?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
@@ -793,7 +885,9 @@ function _headerList($view) {
 			</tr>
 			<?php if ($view['can_validate'] == 1) { ?>
 	    	<tr style="background-color:#dedede;">
-	    	    <th colspan="<?php echo empty($conf->barcode->enabled) ? 3 : 4;  ?>">&nbsp;</th>
+	    		<?php $colspan = empty($conf->barcode->enabled) ? 3 : 4;  ?>
+	    		<?php if(!empty($conf->productbatch->enabled)) $colspan++;  ?>
+	    	    <th colspan="<?php echo $colspan;  ?>">&nbsp;</th>
 	    	    <th>PMP<?php if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL)) echo img_info($langs->trans('UsePAifnull')); ?></th>
 	    	    <th>Dernier PA</th>
 	    	    <?php

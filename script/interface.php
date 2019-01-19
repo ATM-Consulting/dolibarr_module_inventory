@@ -7,6 +7,7 @@
     $get = GETPOST('get');
     $put = GETPOST('put');
     
+    
     $PDOdb=new TPDOdb;
     
     switch ($put) {
@@ -46,5 +47,36 @@
             
             break;
         
+        case 'batch':
+            if (!$user->rights->inventory->write) { echo -1; exit; }
+            
+            $index = (int) GETPOST('index');
+            $lot = GETPOST('batch');
+            $qty = (float) GETPOST('qty');
+            
+            // id de l'inventaire
+            $fk_inventory = (int) GETPOST('fk_inventory');
+            $inv = new TInventory();
+            $inv->load($PDOdb, $fk_inventory);
+            
+            // ajouter une ligne copie de la dernière ligne de l'inventaire
+            
+            
+            $k = $inv->addChild($PDOdb, 'TInventorydet');
+            $det =  &$inv->TInventorydet[$k];
+            
+//             echo '<pre>'; print_r($inv->TInventorydet[$index]->id); exit;
+            $det->fk_inventory = $inv->getId();
+            $det->fk_product = $inv->TInventorydet[$index]->fk_product;
+            $det->fk_warehouse = $inv->TInventorydet[$index]->fk_warehouse;
+//             //        var_dump($det);exit;
+            $det->load_product();
+            $det->lot = $lot;
+            $det->qty_view = $qty;
+            $inv->save($PDOdb);
+                        
+            echo 1;
+            
+            break;
     }
  

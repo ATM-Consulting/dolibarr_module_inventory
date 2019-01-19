@@ -17,9 +17,30 @@
             
         }).done(function(data) {
             $('#qty_view_'+k).html(data);
+            <?php 
+            if($view['per_batch'])
+            {
+            ?>
+            	parentProdline = $('#prod_'+k).val();
+            	parentProd = $('input[name=det_id_'+parentProdline+']').val();
+                
+                $.ajax({
+                    url:"script/interface.php"
+                    ,data:{
+                        'fk_det_inventory' : parentProd
+                        ,'qty': qty
+                        ,'put':'qty'
+                    }
+                    
+                }).done(function(data) {
+                	$('#qty_view_'+parentProdline).html(data);
+                });
+            <?php
+            }
+            ?>
+            console.log(data);
             $input.val(0);
             $.jnotify("Quantité ajoutée : "+qty, "mesgs" );
-            
             $('#a_save_qty_'+k).show();
             
             hide_save_button();
@@ -98,6 +119,104 @@
        }
         
     }
+
+	function deleteLine(k)
+	{
+		if (confirm('Confirmez-vous la suppression de la ligne ?')) {
+			qty = 0;
+			qty-= parseFloat($('#qty_view_'+k).html());
+			if($('#prod_line_'+k).length !== 0)
+			{
+				parentProd = $('#prod_line_'+k).val();
+			} else {
+				parentProdline = $('#prod_'+k).val();
+	        	parentProd = $('input[name=det_id_'+parentProdline+']').val();
+			}
+            $.ajax({
+                url:"script/interface.php"
+                ,data:{
+                    'fk_det_inventory' : parentProd
+                    ,'qty': qty
+                    ,'put':'qty'
+                }
+                
+            }).done(function(data) {
+                console.log(data)
+            	document.location = $('#delline_'+k).attr('data-href');
+            });
+		}
+		
+		
+	}
+    
+    function addBatch(k)
+    {
+        var prodline = $('#qty_view_'+k).parent().parent();
+        
+        if ($('#new_batch_'+k).length == 0)
+        {
+            var html = '';
+            html+= '<tr style="background-color: #e6cece;"><td>Nouveau lot</td><td></td>';
+            <?php if (! empty($conf->barcode->enabled)) { ?>
+            html+= '<td align="center" style="background-color: #e8e8ff;"></td>';
+            <?php } ?>
+            html+= '<td align="center" style="background-color: #e8e8ff;"><input type="texte" value="" id="new_batch_'+k+'"></td>';
+            html+= '<td align="center" style="background-color: #e8e8ff;">0</td>';
+            html+= '<td align="center" style="background-color: #e8e8ff;"></td>';
+            html+= '<td align="center" style="background-color: #e8e8ff;"></td>';
+            html+= '<td align="center"><input type="texte" value="" id="new_batch_qty_'+k+'" value="0"></td>';
+            html+= '<td align="left"><a class="butAction" href="javascript:new_batch('+k+')">Envoyer</a></td>';
+            html+= '<td colspan="4"></td></tr>';
+            prodline.after(html);
+        }
+    }
+
+    function new_batch(k)
+    {
+        var lot = $('#new_batch_'+k).val();
+		var qty = $('#new_batch_qty_'+k).val();
+		var prodline = $('#qty_view_'+k).parent().parent();
+        var rowid = prodline.find('#prod_'+k).val();
+		//console.log(qty);
+		if (lot !== '') 
+		{
+			$.ajax({
+	            url:"script/interface.php"
+	            ,data:{
+	                'fk_inventory' : <?php echo $inventoryTPL['id']; ?>
+            		,'index' : k
+            		,'batch' : lot
+            		,'qty' : qty
+	                ,'put':'batch'
+	            }
+	            
+	        }).done(function(d) {
+	           	//onsole.log(d);
+	           	if (d == '1')
+	           	{
+	           		parentProdline = $('#prod_'+k).val();
+	            	parentProd = $('input[name=det_id_'+parentProdline+']').val();
+	                
+	                $.ajax({
+	                    url:"script/interface.php"
+	                    ,data:{	                        
+		                    'fk_det_inventory' : rowid
+	                        ,'qty': qty
+	                        ,'put':'qty'
+	                    }
+	                    
+	                }).done(function(data) {
+		                console.log(data);
+	                	document.location = '?id='+<?php echo $inventoryTPL['id']; ?>+'&action=edit';
+	                });
+					
+	           	}
+	        });
+		} else {
+			$('#new_batch_'+k).focus();
+		}
+    }
+    
 </script>
 
 <?php if ($view['is_already_validate'] != 1) { ?>
@@ -145,6 +264,9 @@
 				<td align="center"><?php echo $row['entrepot']; ?></td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<td align="center"><?php echo $row['barcode']; ?></td>
+				<?php } ?>
+				<?php if($view['per_batch']) {?>
+					<td align="center" style="background-color: #e8e8ff;"><?php echo $row['lot']; ?></td>
 				<?php } ?>
 				<?php if ($view['can_validate'] == 1) { ?>
 					<td align="center" style="background-color: #e8e8ff;"><?php echo $row['qty_stock']; ?></td>
@@ -233,5 +355,14 @@
 </form>
 <p>Date de création : <?php echo $inventoryTPL['date_cre']; ?><br />Dernière mise à jour : <?php echo $inventoryTPL['date_maj']; ?></p>
 	
-
+<script>
+$(document).ready(function(){
+	$('.enfant').each(function(){
+		parentProdline = $(this).val();
+		tr = $('#qty_view_'+parentProdline).parent().parent();
+	
+		tr.find('td').last().find('a').hide();
+	});
+});
+</script>
 	
