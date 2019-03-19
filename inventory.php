@@ -36,11 +36,13 @@ if(!$user->rights->inventory->read) accessforbidden();
 
 $langs->load("inventory@inventory");
 
+$hookmanager->initHooks(array('inventoryatmcard'));
+
 _action();
 
 function _action() 
 {
-	global $user, $db, $conf, $langs;	
+	global $user, $db, $conf, $langs, $hookmanager;
 	$PDOdb=new TPDOdb;
 	//$PDOdb->debug=true;
 	
@@ -97,6 +99,11 @@ function _action()
 			$sql.= ' WHERE sm.fk_entrepot IN ('.implode(', ', $TChildWarehouses).')';
 			if ($fk_category > 0) $sql.= ' AND AND cp.fk_categorie = '.$fk_category;
 			if ($fk_supplier > 0) $sql.= ' AND pfp.fk_soc = '.$fk_supplier;
+
+			$parameters=array('fk_category'=>$fk_category, 'fk_supplier' => $fk_supplier, 'only_prods_in_stock' => $only_prods_in_stock);
+			$reshook=$hookmanager->executeHooks('printFieldListWhere',$parameters,$inventory,$action);    // Note that $action and $object may have been modified by some hooks
+			if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+			else $sql.=$hookmanager->resPrint;
 
 			$sql.= ' GROUP BY p.rowid, sm.fk_entrepot';
 
