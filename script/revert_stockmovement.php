@@ -1,4 +1,5 @@
 <?php
+if(empty($_REQUEST['go'])) exit;
 require('../config.php');
 dol_include_once('/product/stock/class/mouvementstock.class.php');
 //Nom de l'inventaire
