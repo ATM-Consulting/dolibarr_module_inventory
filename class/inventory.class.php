@@ -390,8 +390,8 @@ class TInventorydet extends TObjetStd
 			if($last_stock_value < 0) $last_stock_value = 0;
 
 			//if($last_stock_value<0 || $laststock<0) null; 
-			$lastpmp = ($laststock != 0) ? $last_stock_value / $laststock : $lastpmp; // S'il y a un stock, alors son PMP est sa valeur totale / nombre de pièce
-			 
+			$lastpmp = (round($laststock, 4) != 0) ? $last_stock_value / $laststock : $lastpmp; // S'il y a un stock, alors son PMP est sa valeur totale / nombre de pièce
+
 		}
 
 		return array($lastpmp,$laststock);
