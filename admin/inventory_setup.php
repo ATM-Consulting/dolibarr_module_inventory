@@ -91,7 +91,7 @@ dol_fiche_head(
     $head,
     'settings',
     $langs->trans("Module104420Name"),
-    0,
+    -1,
     "inventory@inventory"
 );
 
@@ -188,7 +188,19 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans('INVENTORY_USE_ONLY_INTEGER').'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print ajax_constantonoff('INVENTORY_USE_ONLY_INTEGER');
+print '</td></tr>';
+
+
+
 print '</table>';
+
+dol_fiche_end(-1);
 
 llxFooter();
 
