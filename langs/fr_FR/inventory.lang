@@ -42,3 +42,5 @@ IncludeProdWithCurrentStockValue=Intégrer les produits avec leur stock actuel e
 INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL=Utiliser le dernier prix d'achat ou le minimal pour PMP en cas de PMP nul
 UsePAifnull=Utilise le prix d'achat si null
 InventoryWithBatchDetail=Faire l'inventaire par numeros de lot
+
+INVENTORY_USE_ONLY_INTEGER=Restrindre la saisie des quantités sur un mode unitaire (virgule non acceptée)

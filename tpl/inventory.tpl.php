@@ -4,7 +4,11 @@
         var $input = $('input[name="qty_to_add['+k+']"]');
         var fk_det_inventory = $('input[name=det_id_'+k+']').val();
         var qty = $input.val();
-        
+
+        <?php if (!empty($conf->global->INVENTORY_USE_ONLY_INTEGER)) { ?>
+            qty = parseInt(qty);
+        <?php } ?>
+
         $('#a_save_qty_'+k).hide();
         
         $.ajax({
