@@ -97,7 +97,7 @@ function _action()
 			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)';
 			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)';
 			$sql.= ' WHERE sm.fk_entrepot IN ('.implode(', ', $TChildWarehouses).')';
-			if ($fk_category > 0) $sql.= ' AND AND cp.fk_categorie = '.$fk_category;
+			if ($fk_category > 0) $sql.= ' AND cp.fk_categorie = '.$fk_category;
 			if ($fk_supplier > 0) $sql.= ' AND pfp.fk_soc = '.$fk_supplier;
 
 			$parameters=array('fk_category'=>$fk_category, 'fk_supplier' => $fk_supplier, 'only_prods_in_stock' => $only_prods_in_stock);
