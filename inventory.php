@@ -53,7 +53,7 @@ function _action()
 	********************************************************************/
 
 	$action=__get('action','list');
-	
+
 	switch($action) {
 		case 'list':
 			_liste($user, $db, $conf, $langs);
@@ -78,12 +78,13 @@ function _action()
 			$inventory->set_values($_REQUEST);
 			
             $fk_inventory = $inventory->save($PDOdb);
-            $fk_category = (int)GETPOST('fk_category');
+            $fk_category = GETPOST('fk_category');
             $fk_supplier = (int)GETPOST('fk_supplier');
             $fk_warehouse = (int)GETPOST('fk_warehouse');
 			$only_prods_in_stock = (int)GETPOST('OnlyProdsInStock');
 			$inventoryWithBatchDetail = (int)GETPOST('inventoryWithBatchDetail');
 			$inventory->per_batch = $inventoryWithBatchDetail;
+
 			
 			$e = new Entrepot($db);
 			$e->fetch($fk_warehouse);
@@ -97,7 +98,7 @@ function _action()
 			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)';
 			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)';
 			$sql.= ' WHERE sm.fk_entrepot IN ('.implode(', ', $TChildWarehouses).')';
-			if ($fk_category > 0) $sql.= ' AND cp.fk_categorie = '.$fk_category;
+			if (!empty($fk_category)) $sql.= ' AND cp.fk_categorie IN ('.implode(',',$fk_category).')';
 			if ($fk_supplier > 0) $sql.= ' AND pfp.fk_soc = '.$fk_supplier;
 
 			$parameters=array('fk_category'=>$fk_category, 'fk_supplier' => $fk_supplier, 'only_prods_in_stock' => $only_prods_in_stock);
@@ -440,7 +441,7 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
         
         <tr>
             <td><?php echo $langs->trans('SelectCategory') ?></td>
-            <td><?php echo $formDoli->select_all_categories(0,'', 'fk_category') ?></td> 
+            <td><?php echo $formDoli->select_all_categories(0,'', 'fk_category[]') ?></td>
         </tr>
         <tr>
             <td><?php echo $langs->trans('SelectFournisseur') ?></td>
@@ -470,6 +471,13 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 	
 	print $form->end_form();	
 	llxFooter('');
+    ?>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('select[name*="fk_category"]').attr("multiple", 'multiple').select2().val('').change();//Pour vider le multiselect car select_all_categories est ...
+        });
+    </script>
+    <?php
 }
 
 function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit')
