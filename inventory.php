@@ -744,9 +744,10 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 		$prod = new Product($db);
 		$prod->fetch($v->fk_product);
 		//$prod->fetch_optionals($prod->id);
-		
+
 		$TInventoryPrint[] = array(
 			'product' => $prod->ref.' - '.$prod->label
+			,'lot' => isset($v->lot) ? $v->lot : ''
 			, 'qty_view' => $v->qty_view
 		);
 	}
@@ -758,11 +759,11 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 	$dir = $conf->inventory->multidir_output[$conf->entity].'/'.$dirName.'/';
 	
 	@mkdir($dir, 0777, true);
-	
-	$template = "templateINVENTORY.odt";
+
+	$inventory->per_batch ? $template = "templateINVENTORY_lot.odt" : $template = "templateINVENTORY.odt";
 	//$template = "templateOF.doc";
 
-	$file_gen = $TBS->render(dol_buildpath('inventory/exempleTemplate/'.$template)
+	$file_gen = $TBS->render(dol_buildpath('inventory/exempleTemplate/'. $template)
 		,array(
 			'TInventoryPrint'=>$TInventoryPrint
 		)
