@@ -317,7 +317,7 @@ function _action()
 			
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
-			
+
 			exportCSV($inventory);
 			
 			exit;
@@ -659,77 +659,117 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 
 function exportCSV(&$inventory) {
 	global $conf;
-	
+
 	header('Content-Type: application/octet-stream');
     header('Content-disposition: attachment; filename=inventory-'. $inventory->getId().'-'.date('Ymd-His').'.csv');
     header('Pragma: no-cache');
     header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
     header('Expires: 0');
-	
-	echo 'Ref;Label;barcode;qty theorique;PMP;dernier PA;';
+
+
+	echo 'Ref;Label;';
+	if($inventory->per_batch) echo 'Lot;';
+	echo 'barcode;qty theorique;PMP;dernier PA;';
 	if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) echo 'PA courant;';
 	echo 'qty réelle;PMP;dernier PA;';
 	if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) echo 'PA courant;';
 	echo 'qty regulée;'."\r\n";
-	
+
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
 	{
 		$product = & $TInventorydet->product;
 		$stock = $TInventorydet->qty_stock;
-	
+		$lot = $TInventorydet->lot;
+
         $pmp = $TInventorydet->pmp;
 		$pmp_actual = $pmp * $stock;
 		$inventory->amount_actual+=$pmp_actual;
 
         $last_pa = $TInventorydet->pa;
         $current_pa = $TInventorydet->current_pa;
-	
+
 	if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL) && empty($pmp_actual)) {
 		if(!empty($last_pa)){ $pmp_actual = $last_pa* $stock;$pmp=$last_pa;}
 		else if(!empty($current_pa)) {$pmp_actual = $current_pa* $stock; $pmp=$current_pa;}
 	}
-	
+
 		if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) {
-			$row=array(
-				'produit' => $product->ref
-				,'label'=>$product->label
-				,'barcode' => $product->barcode
-				,'qty_stock' => $stock
-				,'pmp_stock'=>round($pmp_actual,2)
-	            		,'pa_stock'=>round($last_pa * $stock,2)
-				,'current_pa_stock'=>round($current_pa * $stock,2)
-			    	,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
-				,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
-	            		,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
-	        	,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
-				,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-				
-			);
-			
+			if($inventory->per_batch) {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'lot' => $lot
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'current_pa_stock' => round($current_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+					, 'current_pa_actual' => round($current_pa * $TInventorydet->qty_view, 2)
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+
+				);
+			} else {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'current_pa_stock' => round($current_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+					, 'current_pa_actual' => round($current_pa * $TInventorydet->qty_view, 2)
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+
+				);
+			}
 		}
 		else{
-			$row=array(
-				'produit' => $product->ref
-				,'label'=>$product->label
-				,'barcode' => $product->barcode
-				,'qty_stock' => $stock
-				,'pmp_stock'=>round($pmp_actual,2)
-	            ,'pa_stock'=>round($last_pa * $stock,2)
-	            ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
-				,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
-	            ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
-	            
-				,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-				
-		);
-			
+			if($inventory->per_batch) {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'lot' => $lot
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+
+				);
+			} else {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+
+				);
+			}
+
 		}
-		
-		
+
+
 		echo '"'.implode('";"', $row).'"'."\r\n";
-		
+
 	}
-	
+
 	exit;
 }
 
