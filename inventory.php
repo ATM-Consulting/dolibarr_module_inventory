@@ -889,7 +889,7 @@ function _headerList($view) {
     global $conf,$user,$langs;
 	
 	?>
-			<tr style="background-color:#dedede;">
+			<tr style="background-color:#dedede !important;">
 				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
 				<th align="center">Entrepôt</td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
@@ -932,7 +932,7 @@ function _headerList($view) {
 				<th align="center" width="5%"></th>
 			</tr>
 			<?php if ($view['can_validate'] == 1) { ?>
-	    	<tr style="background-color:#dedede;">
+	    	<tr style="background-color:#dedede !important;">
 	    		<?php $colspan = empty($conf->barcode->enabled) ? 3 : 4;  ?>
 	    		<?php if(!empty($conf->productbatch->enabled)) $colspan++;  ?>
 	    	    <th colspan="<?php echo $colspan;  ?>">&nbsp;</th>
