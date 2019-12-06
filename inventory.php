@@ -332,8 +332,8 @@ function _action()
 
 function _liste(&$user, &$db, &$conf, &$langs) 
 {	
-	global $dol_version;
-	llxHeader('',$langs->trans('inventoryListTitle'),'','');
+	global $dol_version, $module_helpurl;
+	llxHeader('',$langs->trans('inventoryListTitle'),$module_helpurl,'');
 	
 	$form=new TFormCore;
 
@@ -410,9 +410,10 @@ function _liste(&$user, &$db, &$conf, &$langs)
 
 function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 {
+	global $module_helpurl;
 	dol_include_once('/categories/class/categorie.class.php');    
         
-	llxHeader('',$langs->trans('inventorySelectWarehouse'),'','');
+	llxHeader('',$langs->trans('inventorySelectWarehouse'),$module_helpurl,'');
 	print dol_get_fiche_head(inventoryPrepareHead($inventory));
 	
 	$form=new TFormCore('inventory.php', 'confirmCreate');
@@ -474,7 +475,8 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 
 function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit')
 {
-	llxHeader('',$langs->trans('inventoryEdit'),'','');
+	global $module_helpurl;
+	llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
 	
 	$warehouse = new Entrepot($db);
 	$warehouse->fetch($inventory->fk_warehouse);

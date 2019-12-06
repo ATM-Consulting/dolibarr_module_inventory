@@ -23,10 +23,7 @@
  * 				Put some comments here
  */
 // Dolibarr environment
-$res = @include("../../main.inc.php"); // From htdocs directory
-if (! $res) {
-    $res = @include("../../../main.inc.php"); // From "custom" directory
-}
+require_once '../config.php';
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
@@ -78,7 +75,7 @@ if (preg_match('/del_(.*)/',$action,$reg))
  * View
  */
 $page_name = "inventorySetup";
-llxHeader('', $langs->trans($page_name));
+llxHeader('', $langs->trans($page_name), $module_helpurl);
 
 // Subheader
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'

@@ -27,5 +27,5 @@
 		exit;
 	}
 
-	
+	$module_helpurl='http://wiki.atm-consulting.fr/index.php/Inventaire/Documentation_utilisateur';
 
