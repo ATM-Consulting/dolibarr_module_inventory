@@ -29,7 +29,8 @@ class TInventory extends TObjetStd
 	
 	function sort_det() 
 	{
-		usort($this->TInventorydet, array('TInventory', 'customSort'));
+//		usort($this->TInventorydet, array('TInventory', 'customSort'));
+        usort($this->TInventorydet, array('TInventory', 'orderSort'));
 	}
 	
 	function load(&$PDOdb, $id,$annexe = true) 
@@ -61,6 +62,31 @@ class TInventory extends TObjetStd
 		
 		return $r;
 	}
+
+    function orderSort(&$objA, &$objB){
+
+        if(GETPOST('sortorder') == 'desc') {
+
+            $r = strcmp(strtoupper(trim($objA->product->ref)), strtoupper(trim($objB->product->ref)));
+
+            if ($r > 0) $r = -1;
+            elseif ($r < 0) $r = 1;
+            else $r = 0;
+
+            return $r;
+
+        } elseif (GETPOST('sortorder') == 'asc') {
+
+            $r = strcmp(strtoupper(trim($objA->product->ref)), strtoupper(trim($objB->product->ref)));
+
+            if ($r < 0) $r = -1;
+            elseif ($r > 0) $r = 1;
+            else $r = 0;
+
+            return $r;
+
+        }
+    }
 	
 	function changePMP(&$PDOdb) {
 		

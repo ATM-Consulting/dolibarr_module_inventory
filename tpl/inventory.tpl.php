@@ -262,8 +262,9 @@
 	
 	<input type="hidden" name="action" value="save" />
 	<input type="hidden" name="id" value="<?php echo $inventoryTPL['id']; ?>" />
-	
-	<table width="100%" class="border workstation">
+    <input type="hidden" name="formfilteraction" value="list" />
+
+    <table width="100%" class="border workstation">
 		<?php
 		
 		_headerList($view); 
@@ -277,10 +278,10 @@
             $total_pmp_actual+=round($row['pmp_actual'],2);
             $total_pa_actual+=round($row['pa_actual'],2);
             
-			if($i%20 === 0)
-			{
-            	_headerList($view);
-			} // Fin IF principal
+//			if($i%20 === 0)
+//			{
+//            	_headerList($view);
+//			} // Fin IF principal
 	    	?>
 			<tr style="background-color:<?php echo ($k%2 == 0) ? '#fff':'#eee'; ?>;">
 				<td align="left">&nbsp;&nbsp;<?php echo $row['produit']; ?></td>
