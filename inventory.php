@@ -557,7 +557,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, $mode)
 {
-	global $db,$conf;
+	global $db,$conf, $arrayfields;
 	$inventory->amount_actual = 0;
 	
 	$TCacheEntrepot = array();
@@ -649,6 +649,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 		        ,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
 		        ,'k'=>$k
 		        ,'id'=>$TInventorydet->getId()
+                ,'fk_product'=>$product->id
 		    );
 		    
 		    
@@ -675,11 +676,12 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
                 ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
     			,'current_pa_stock'=>round($current_pa * $stock,2)
     			,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
-              
                 ,'k'=>$k
                 ,'id'=>$TInventorydet->getId()
-    		);
-		}
+                ,'fk_product'=>$product->id
+
+        );
+        }
 		
 	}
 	
@@ -935,7 +937,7 @@ function _headerList($view) {
 					<th align="center" width="20%">Quantité théorique</th>
 					<?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
-	              		echo '<th align="center" width="20%" colspan="3">Valeur théorique</th>';   	
+	              		echo '<th align="center" width="20%" colspan="3">Valeur théorique</th>';
 					 }
 					 else {
 					 	echo '<th align="center" width="20%" colspan="2">Valeur théorique</th>';
