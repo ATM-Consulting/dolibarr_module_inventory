@@ -929,6 +929,11 @@ function _headerList($view) {
     $form = new Form($db);
     $selectedfields=$form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, "inventoryatm");
 
+    //Définition de l'objet pour le tpl extrafields_list_search_title
+    $object = new Product($db);
+    $object = (object) $object;
+
+
 	?>
 			<tr style="background-color:#dedede !important;">
                 <?php print_liste_field_titre("Produit", $_SERVER["PHP_SELF"],"p.ref", "", $param, "", $sortfield, $sortorder, "", ""); ?>
