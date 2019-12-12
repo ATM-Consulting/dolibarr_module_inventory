@@ -263,6 +263,8 @@
 	<input type="hidden" name="action" value="save" />
 	<input type="hidden" name="id" value="<?php echo $inventoryTPL['id']; ?>" />
     <input type="hidden" name="formfilteraction" value="list" />
+    <input type="hidden" name="sortfield" value="<?php echo $sortfield ?>">
+    <input type="hidden" name="sortorder" value="<?php echo $sortorder ?>">
 
     <table width="100%" class="border workstation">
 		<?php
@@ -325,14 +327,11 @@
                     <td align="center"><?php echo $row['qty_regulated']; ?></td>
 				<?php } ?>
                 <?php
+
+                //définition de l'objet à afficher pour le tpl extrafields_list_print_fields
                 $object = new Product($db);
                 $object->fetch($row['fk_product']);
-
                 $obj = (object) $object->array_options;
-
-                $extrafields = new ExtraFields($db);
-                $extrafields->fetch_name_optionals_label('product');
-                $extrafields->getOptionalsFromPost($product->table_element,'','ef_');
 
                 include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_print_fields.tpl.php';
                 

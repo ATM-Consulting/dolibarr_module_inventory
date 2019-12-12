@@ -65,26 +65,59 @@ class TInventory extends TObjetStd
 
     function orderSort(&$objA, &$objB){
 
-        if(GETPOST('sortorder') == 'desc') {
+	    //champs à trier
+       $sortfield = GETPOST('sortfield');
 
-            $r = strcmp(strtoupper(trim($objA->product->ref)), strtoupper(trim($objB->product->ref)));
+       $TFieldparts =  explode('.', $sortfield, 2);
+       $fieldtype = $TFieldparts[0];
+       $fieldname = $TFieldparts[1];
 
-            if ($r > 0) $r = -1;
-            elseif ($r < 0) $r = 1;
-            else $r = 0;
+        if(GETPOST('sortorder') == 'desc') {    //tri decroissant
 
-            return $r;
+            if($fieldtype == 'ef')      //extrafield
+            {
+                $r = strcmp(strtoupper(trim($objA->product->array_options['options_'.$fieldname])), strtoupper(trim($objB->product->array_options['options_'.$fieldname])));
 
-        } elseif (GETPOST('sortorder') == 'asc') {
+                if ($r > 0) $r = -1;
+                elseif ($r < 0) $r = 1;
+                else $r = 0;
 
-            $r = strcmp(strtoupper(trim($objA->product->ref)), strtoupper(trim($objB->product->ref)));
+                return $r;
 
-            if ($r < 0) $r = -1;
-            elseif ($r > 0) $r = 1;
-            else $r = 0;
+            } else
+            {
 
-            return $r;
+                $r = strcmp(strtoupper(trim($objA->product->$fieldname)), strtoupper(trim($objB->product->$fieldname)));
 
+                if ($r > 0) $r = -1;
+                elseif ($r < 0) $r = 1;
+                else $r = 0;
+
+                return $r;
+            }
+
+        } elseif (GETPOST('sortorder') == 'asc') {      //tri croissant
+
+            if($fieldtype == 'ef')      //extrafield
+            {
+                $r = strcmp(strtoupper(trim($objA->product->array_options['options_'.$fieldname])), strtoupper(trim($objB->product->array_options['options_'.$fieldname])));
+
+                if ($r < 0) $r = -1;
+                elseif ($r > 0) $r = 1;
+                else $r = 0;
+
+                return $r;
+
+            } else
+            {
+                $r = strcmp(strtoupper(trim($objA->product->$fieldname)), strtoupper(trim($objB->product->$fieldname)));
+
+                if ($r < 0) $r = -1;
+                elseif ($r > 0) $r = 1;
+                else $r = 0;
+
+                return $r;
+            }
         }
     }
 	

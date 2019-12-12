@@ -479,21 +479,23 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 
 function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit')
 {
-    global $module_helpurl, $selectedfields, $arrayfields;
-	llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
+    global $module_helpurl, $arrayfields, $extrafields;
+
+    llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
 	
 	$warehouse = new Entrepot($db);
 	$warehouse->fetch($inventory->fk_warehouse);
 	
 	print dol_get_fiche_head(inventoryPrepareHead($inventory, $langs->trans('inventoryOfWarehouse', $warehouse->libelle), '&action='.$mode));
 
+	//Récupération du tableau des champs extrafields que l'on peut ajouter en tant que colonne
     $arrayfields = array();
     $extrafields = new ExtraFields($db);
 
     $product = new Product($db);
 
     $extrafields->fetch_name_optionals_label('product');
-    $extrafields->getOptionalsFromPost($product->table_element,'','search_');
+    $extrafields->getOptionalsFromPost($product->table_element,'','ef_');
 
     if (is_array($extrafields->attributes[$product->table_element]['label']) && count($extrafields->attributes[$product->table_element]['label']))
     {
@@ -505,9 +507,6 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
     }
 
     $arrayfields = dol_sort_array($arrayfields, 'position');
-
-    $form = new Form($db);
-    $selectedfields=$form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, "inventoryatm");
 
 	$form=new TFormCore();
 	$form->Set_typeaff($mode);
@@ -557,7 +556,8 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, $mode)
 {
-	global $db,$conf, $arrayfields;
+	global $db,$conf;
+
 	$inventory->amount_actual = 0;
 	
 	$TCacheEntrepot = array();
@@ -679,12 +679,9 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
                 ,'k'=>$k
                 ,'id'=>$TInventorydet->getId()
                 ,'fk_product'=>$product->id
-
-        );
+            );
         }
-		
 	}
-	
 }
 
 function exportCSV(&$inventory) {
@@ -916,16 +913,25 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <?php } 
 }
 function _headerList($view) {
-    global $conf,$user,$langs, $db, $selectedfields, $arrayfields;
+    global $conf,$user,$langs, $db, $selectedfields, $arrayfields, $extrafields;
 
-    $sortorder = GETPOST('sortorder');
+    //tri croissant/décroissant des colonnes
+    $sortfield = GETPOST("sortfield", 'alpha');             //nom du champs à trier
+    $sortorder = GETPOST("sortorder", 'alpha');             //ordre de tri
+    $id_inventory = GETPOST("id");
 
-    if( ! $sortorder ) $sortorder = 'asc';
-	
+    if (! $sortfield) $sortfield="p.ref";
+    if (! $sortorder ) $sortorder = 'asc';
+
+    $param = "&contextpage=inventorylist&id=".$id_inventory."&action=view";             //paramètres supplémentaires du lien lorsqu'on souhaite trier la colonne
+
+    //champs à cocher du hamburger
+    $form = new Form($db);
+    $selectedfields=$form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, "inventoryatm");
+
 	?>
 			<tr style="background-color:#dedede !important;">
-                <?php print_liste_field_titre("Produit", $_SERVER["PHP_SELF"],"ref", "", "&contextpage=inventorylist&id=1&action=view", "", "ref", $sortorder, "", ""); ?>
-                <!--				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>-->
+                <?php print_liste_field_titre("Produit", $_SERVER["PHP_SELF"],"p.ref", "", $param, "", $sortfield, $sortorder, "", ""); ?>
 				<th align="center">Entrepôt</td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">Code-barre</td>
@@ -964,14 +970,15 @@ function _headerList($view) {
 				<?php if ($view['is_already_validate'] != 1) { ?>
 					<th align="center" width="5%">#</th>
 				<?php } ?>
-                <?php foreach($arrayfields as $field){
-                    if($field['checked'] == 1) {
-                        echo '<th align="center" width="20%" colspan="' . $colspan . '">' . $field['label'] . '</th>';
-                    }
-                } ?>
+                <?php //titres des extrafields cochés dans le hamburger
+                include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_title.tpl.php';
+                ?>
                 <?php echo '<th>&nbsp;</th>'; ?>
 				<th align="center" width="5%"></th>
-			</tr>
+                <?php //menu hamburger
+                print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"].'?id=1&action=view',"",'','','',$sortfield,$sortorder,'center maxwidthsearch ');
+                ?>
+            </tr>
 			<?php if ($view['can_validate'] == 1) { ?>
 	    	<tr style="background-color:#dedede !important;">
 	    		<?php $colspan = empty($conf->barcode->enabled) ? 3 : 4;  ?>
@@ -1004,11 +1011,11 @@ function _headerList($view) {
 	            <th>&nbsp;</th>
 	            <?php } ?>
                 <?php foreach($arrayfields as $field){
-                    echo '<th>&nbsp;</th>';
+                    if($field['checked'] == 1) echo '<th>&nbsp;</th>';          //espaces deuxième ligne de titre pour s'adapter à la première en fonction des extrafields
                 } ?>
                 <?php echo '<th>&nbsp;</th>'; ?>
-                <?php 	print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"].'?id=1&action=view',"",'','','','ref','asc','center maxwidthsearch '); ?>
-	    	</tr>
+                <?php echo '<th>&nbsp;</th>'; ?>
+            </tr>
 	    	<?php 
 	} 
 	
