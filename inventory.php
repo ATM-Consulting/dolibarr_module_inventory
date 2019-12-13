@@ -36,7 +36,7 @@ if(!$user->rights->inventory->read) accessforbidden();
 
 $langs->load("inventory@inventory");
 
-$contextpage = 'inventoryatm';
+$contextpage = 'inventoryatmcard';
 
 include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
 
@@ -138,8 +138,8 @@ function _action()
 			
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
-			
-			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, __get('action', 'edit', 'string'));
+
+            _fiche($PDOdb, $user, $db, $conf, $langs, $inventory, __get('action', 'edit', 'string'));
 			
 			break;
 			
@@ -479,11 +479,14 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 
 function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit')
 {
-    global $module_helpurl, $arrayfields, $extrafields;
+    global $module_helpurl, $arrayfields, $extrafields, $hookmanager, $parameters;
 
     llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
-	
-	$warehouse = new Entrepot($db);
+
+    $action = GETPOST('action');
+    $reshook=$hookmanager->executeHooks('doActions', $parameters,$inventory,$action);
+
+    $warehouse = new Entrepot($db);
 	$warehouse->fetch($inventory->fk_warehouse);
 	
 	print dol_get_fiche_head(inventoryPrepareHead($inventory, $langs->trans('inventoryOfWarehouse', $warehouse->libelle), '&action='.$mode));
@@ -927,7 +930,7 @@ function _headerList($view) {
 
     //champs à cocher du hamburger
     $form = new Form($db);
-    $selectedfields=$form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, "inventoryatm");
+    $selectedfields=$form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, "inventoryatmcard");
 
     //Définition de l'objet pour le tpl extrafields_list_search_title
     $object = new Product($db);
@@ -937,7 +940,7 @@ function _headerList($view) {
 	?>
 			<tr style="background-color:#dedede !important;">
                 <?php print_liste_field_titre("Produit", $_SERVER["PHP_SELF"],"p.ref", "", $param, "", $sortfield, $sortorder, "", ""); ?>
-				<th align="center">Entrepôt</td>
+				<th align="center" class="warehouse">Entrepôt</td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">Code-barre</td>
 				<?php } ?>
@@ -988,7 +991,7 @@ function _headerList($view) {
 	    	<tr style="background-color:#dedede !important;">
 	    		<?php $colspan = empty($conf->barcode->enabled) ? 3 : 4;  ?>
 	    		<?php if(!empty($conf->productbatch->enabled)) $colspan++;  ?>
-	    	    <th colspan="<?php echo $colspan;  ?>">&nbsp;</th>
+	    	    <th class = "firstcolspan" colspan="<?php echo $colspan;  ?>">&nbsp;</th>
 	    	    <th>PMP<?php if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL)) echo img_info($langs->trans('UsePAifnull')); ?></th>
 	    	    <th>Dernier PA</th>
 	    	    <?php
@@ -1016,7 +1019,7 @@ function _headerList($view) {
 	            <th>&nbsp;</th>
 	            <?php } ?>
                 <?php foreach($arrayfields as $field){
-                    if($field['checked'] == 1) echo '<th>&nbsp;</th>';          //espaces deuxième ligne de titre pour s'adapter à la première en fonction des extrafields
+                    if($field['checked'] == 1) echo '<th data-label="'. $field['label'] .'">&nbsp;</th>';          //espaces deuxième ligne de titre pour s'adapter à la première en fonction des extrafields
                 } ?>
                 <?php echo '<th>&nbsp;</th>'; ?>
                 <?php echo '<th>&nbsp;</th>'; ?>

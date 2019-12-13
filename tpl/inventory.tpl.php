@@ -266,7 +266,7 @@
     <input type="hidden" name="sortfield" value="<?php echo $sortfield ?>">
     <input type="hidden" name="sortorder" value="<?php echo $sortorder ?>">
 
-    <table width="100%" class="border workstation">
+    <table width="100%" class="border workstation inventory_table">
 		<?php
 		
 		_headerList($view); 
@@ -286,8 +286,8 @@
 			} // Fin IF principal
 	    	?>
 			<tr style="background-color:<?php echo ($k%2 == 0) ? '#fff':'#eee'; ?>;">
-				<td align="left">&nbsp;&nbsp;<?php echo $row['produit']; ?></td>
-				<td align="center"><?php echo $row['entrepot']; ?></td>
+				<td align="left" class="produit">&nbsp;&nbsp;<?php echo $row['produit']; ?></td>
+				<td align="center" class="warehouse"><?php echo $row['entrepot']; ?></td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<td align="center"><?php echo $row['barcode']; ?></td>
 				<?php } ?>
