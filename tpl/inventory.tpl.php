@@ -329,9 +329,9 @@
                 <?php
 
                 //définition de l'objet à afficher pour le tpl extrafields_list_print_fields
-                $object = new Product($db);
+                $object = new Product($db);               //produit
                 $object->fetch($row['fk_product']);
-                $obj = (object) $object->array_options;
+                $obj = (object) $object->array_options; //extrafields du produit
 
                 include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_print_fields.tpl.php';
                 

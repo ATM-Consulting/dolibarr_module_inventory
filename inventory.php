@@ -479,7 +479,7 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 
 function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit')
 {
-    global $module_helpurl, $arrayfields, $extrafields, $hookmanager, $parameters;
+    global $module_helpurl, $arrayfields, $extrafields, $hookmanager, $parameters, $extrafieldsobjectkey;
 
     llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
 
@@ -508,6 +508,8 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
                 $arrayfields["ef.".$key]=array('label'=>$extrafields->attributes[$product->table_element]['label'][$key], 'checked'=>0, 'position'=>$extrafields->attributes[$product->table_element]['pos'][$key], 'enabled'=>(abs($extrafields->attributes[$product->table_element]['list'][$key])!=3 && $extrafields->attributes[$product->table_element]['perms'][$key]));
         }
     }
+
+    $extrafieldsobjectkey = 'product';
 
     $arrayfields = dol_sort_array($arrayfields, 'position');
 
@@ -559,7 +561,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, $mode)
 {
-	global $db,$conf;
+	global $db,$conf, $extrafieldsobjectkey;
 
 	$inventory->amount_actual = 0;
 	
@@ -916,7 +918,7 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <?php } 
 }
 function _headerList($view) {
-    global $conf,$user,$langs, $db, $selectedfields, $arrayfields, $extrafields;
+    global $conf,$user,$langs, $db, $selectedfields, $arrayfields, $extrafields, $extrafieldsobjectkey;
 
     //tri croissant/décroissant des colonnes
     $sortfield = GETPOST("sortfield", 'alpha');             //nom du champs à trier
@@ -931,11 +933,6 @@ function _headerList($view) {
     //champs à cocher du hamburger
     $form = new Form($db);
     $selectedfields=$form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, "inventoryatmcard");
-
-    //Définition de l'objet pour le tpl extrafields_list_search_title
-    $object = new Product($db);
-    $object = (object) $object;
-
 
 	?>
 			<tr style="background-color:#dedede !important;">
@@ -1012,7 +1009,6 @@ function _headerList($view) {
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
 	              		echo '<th>PA courant</th>';   	
 					 }
-					 
 				?>
 	            <th>&nbsp;</th>
 	            <?php if ($view['is_already_validate'] != 1) { ?>
