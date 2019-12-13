@@ -502,7 +502,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
         foreach($extrafields->attributes[$product->table_element]['label'] as $key => $val)
         {
             if (! empty($extrafields->attributes[$product->table_element]['list'][$key]))
-                $arrayfields["ef.".$key]=array('label'=>$extrafields->attributes[$product->table_element]['label'][$key], 'checked'=>(($extrafields->attributes[$product->table_element]['list'][$key]<0)?0:1), 'position'=>$extrafields->attributes[$product->table_element]['pos'][$key], 'enabled'=>(abs($extrafields->attributes[$product->table_element]['list'][$key])!=3 && $extrafields->attributes[$product->table_element]['perms'][$key]));
+                $arrayfields["ef.".$key]=array('label'=>$extrafields->attributes[$product->table_element]['label'][$key], 'checked'=>0, 'position'=>$extrafields->attributes[$product->table_element]['pos'][$key], 'enabled'=>(abs($extrafields->attributes[$product->table_element]['list'][$key])!=3 && $extrafields->attributes[$product->table_element]['perms'][$key]));
         }
     }
 
