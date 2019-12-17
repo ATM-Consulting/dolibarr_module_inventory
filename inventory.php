@@ -965,6 +965,7 @@ function _headerList($view) {
 				     $colspan = 2;
 					 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) $colspan++;
 				     if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) $colspan++;
+				     if(empty($user->rights->inventory->changePMP)) $colspan --;
 					
 	                 echo '<th align="center" width="20%" colspan="'.$colspan.'">Valeur réelle</th>';
 					 
