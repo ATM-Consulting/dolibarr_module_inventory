@@ -36,6 +36,10 @@ if(!$user->rights->inventory->read) accessforbidden();
 
 $langs->load("inventory@inventory");
 
+$contextpage = 'inventoryatmcard';
+
+include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
+
 $hookmanager->initHooks(array('inventoryatmcard'));
 
 _action();
@@ -135,8 +139,8 @@ function _action()
 			
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
-			
-			_fiche($PDOdb, $user, $db, $conf, $langs, $inventory, __get('action', 'edit', 'string'));
+
+            _fiche($PDOdb, $user, $db, $conf, $langs, $inventory, __get('action', 'edit', 'string'));
 			
 			break;
 			
@@ -483,14 +487,40 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 
 function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit')
 {
-	global $module_helpurl;
-	llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
-	
-	$warehouse = new Entrepot($db);
+    global $module_helpurl, $arrayfields, $extrafields, $hookmanager, $parameters, $extrafieldsobjectkey;
+
+    llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
+
+    $action = GETPOST('action');
+    $reshook=$hookmanager->executeHooks('doActions', $parameters,$inventory,$action);
+
+    $warehouse = new Entrepot($db);
 	$warehouse->fetch($inventory->fk_warehouse);
 	
 	print dol_get_fiche_head(inventoryPrepareHead($inventory, $langs->trans('inventoryOfWarehouse', $warehouse->libelle), '&action='.$mode));
-	
+
+	//Récupération du tableau des champs extrafields que l'on peut ajouter en tant que colonne
+    $arrayfields = array();
+    $extrafields = new ExtraFields($db);
+
+    $product = new Product($db);
+
+    $extrafields->fetch_name_optionals_label('product');
+    $extrafields->getOptionalsFromPost($product->table_element,'','ef_');
+
+    if (is_array($extrafields->attributes[$product->table_element]['label']) && count($extrafields->attributes[$product->table_element]['label']))
+    {
+        foreach($extrafields->attributes[$product->table_element]['label'] as $key => $val)
+        {
+            if (! empty($extrafields->attributes[$product->table_element]['list'][$key]))
+                $arrayfields["ef.".$key]=array('label'=>$extrafields->attributes[$product->table_element]['label'][$key], 'checked'=>0, 'position'=>$extrafields->attributes[$product->table_element]['pos'][$key], 'enabled'=>(abs($extrafields->attributes[$product->table_element]['list'][$key])!=3 && $extrafields->attributes[$product->table_element]['perms'][$key]));
+        }
+    }
+
+    $extrafieldsobjectkey = 'product';
+
+    $arrayfields = dol_sort_array($arrayfields, 'position');
+
 	$form=new TFormCore();
 	$form->Set_typeaff($mode);
 	
@@ -539,7 +569,8 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, $mode)
 {
-	global $db,$conf;
+	global $db,$conf, $extrafieldsobjectkey;
+
 	$inventory->amount_actual = 0;
 	
 	$TCacheEntrepot = array();
@@ -631,6 +662,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 		        ,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
 		        ,'k'=>$k
 		        ,'id'=>$TInventorydet->getId()
+                ,'fk_product'=>$product->id
 		    );
 		    
 		    
@@ -657,14 +689,12 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
                 ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
     			,'current_pa_stock'=>round($current_pa * $stock,2)
     			,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
-              
                 ,'k'=>$k
                 ,'id'=>$TInventorydet->getId()
-    		);
-		}
-		
+                ,'fk_product'=>$product->id
+            );
+        }
 	}
-	
 }
 
 function exportCSV(&$inventory) {
@@ -896,12 +926,26 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <?php } 
 }
 function _headerList($view) {
-    global $conf,$user,$langs;
-	
+    global $conf,$user,$langs, $db, $selectedfields, $arrayfields, $extrafields, $extrafieldsobjectkey;
+
+    //tri croissant/décroissant des colonnes
+    $sortfield = GETPOST("sortfield", 'alpha');             //nom du champs à trier
+    $sortorder = GETPOST("sortorder", 'alpha');             //ordre de tri
+    $id_inventory = GETPOST("id");
+
+    if (! $sortfield) $sortfield="p.ref";
+    if (! $sortorder ) $sortorder = 'asc';
+
+    $param = "&contextpage=inventorylist&id=".$id_inventory."&action=view";             //paramètres supplémentaires du lien lorsqu'on souhaite trier la colonne
+
+    //champs à cocher du hamburger
+    $form = new Form($db);
+    $selectedfields=$form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, "inventoryatmcard");
+
 	?>
 			<tr style="background-color:#dedede !important;">
-				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
-				<th align="center">Entrepôt</td>
+                <?php print_liste_field_titre("Produit", $_SERVER["PHP_SELF"],"p.ref", "", $param, "", $sortfield, $sortorder, "", ""); ?>
+				<th align="center" class="warehouse">Entrepôt</td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">Code-barre</td>
 				<?php } ?>
@@ -912,7 +956,7 @@ function _headerList($view) {
 					<th align="center" width="20%">Quantité théorique</th>
 					<?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
-	              		echo '<th align="center" width="20%" colspan="3">Valeur théorique</th>';   	
+	              		echo '<th align="center" width="20%" colspan="3">Valeur théorique</th>';
 					 }
 					 else {
 					 	echo '<th align="center" width="20%" colspan="2">Valeur théorique</th>';
@@ -929,6 +973,7 @@ function _headerList($view) {
 				     $colspan = 2;
 					 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) $colspan++;
 				     if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) $colspan++;
+				     if(empty($user->rights->inventory->changePMP)) $colspan --;
 					
 	                 echo '<th align="center" width="20%" colspan="'.$colspan.'">Valeur réelle</th>';
 					 
@@ -939,13 +984,20 @@ function _headerList($view) {
 				<?php if ($view['is_already_validate'] != 1) { ?>
 					<th align="center" width="5%">#</th>
 				<?php } ?>
+                <?php //titres des extrafields cochés dans le hamburger
+                include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_title.tpl.php';
+                ?>
+                <?php echo '<th>&nbsp;</th>'; ?>
 				<th align="center" width="5%"></th>
-			</tr>
+                <?php //menu hamburger
+                print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"].'?id=1&action=view',"",'','','',$sortfield,$sortorder,'center maxwidthsearch ');
+                ?>
+            </tr>
 			<?php if ($view['can_validate'] == 1) { ?>
 	    	<tr style="background-color:#dedede !important;">
 	    		<?php $colspan = empty($conf->barcode->enabled) ? 3 : 4;  ?>
 	    		<?php if(!empty($conf->productbatch->enabled)) $colspan++;  ?>
-	    	    <th colspan="<?php echo $colspan;  ?>">&nbsp;</th>
+	    	    <th class = "firstcolspan" colspan="<?php echo $colspan;  ?>">&nbsp;</th>
 	    	    <th>PMP<?php if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL)) echo img_info($langs->trans('UsePAifnull')); ?></th>
 	    	    <th>Dernier PA</th>
 	    	    <?php
@@ -966,13 +1018,17 @@ function _headerList($view) {
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
 	              		echo '<th>PA courant</th>';   	
 					 }
-					 
 				?>
 	            <th>&nbsp;</th>
 	            <?php if ($view['is_already_validate'] != 1) { ?>
 	            <th>&nbsp;</th>
 	            <?php } ?>
-	    	</tr>
+                <?php foreach($arrayfields as $field){
+                    if($field['checked'] == 1) echo '<th data-label="'. $field['label'] .'">&nbsp;</th>';          //espaces deuxième ligne de titre pour s'adapter à la première en fonction des extrafields
+                } ?>
+                <?php echo '<th>&nbsp;</th>'; ?>
+                <?php echo '<th>&nbsp;</th>'; ?>
+            </tr>
 	    	<?php 
 	} 
 	

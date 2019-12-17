@@ -29,7 +29,8 @@ class TInventory extends TObjetStd
 	
 	function sort_det() 
 	{
-		usort($this->TInventorydet, array('TInventory', 'customSort'));
+//		usort($this->TInventorydet, array('TInventory', 'customSort'));
+        usort($this->TInventorydet, array('TInventory', 'orderSort'));
 	}
 	
 	function load(&$PDOdb, $id,$annexe = true) 
@@ -61,6 +62,64 @@ class TInventory extends TObjetStd
 		
 		return $r;
 	}
+
+    function orderSort(&$objA, &$objB){
+
+	    //champs à trier
+       $sortfield = GETPOST('sortfield');
+
+       $TFieldparts =  explode('.', $sortfield, 2);
+       $fieldtype = $TFieldparts[0];
+       $fieldname = $TFieldparts[1];
+
+        if(GETPOST('sortorder') == 'desc') {    //tri decroissant
+
+            if($fieldtype == 'ef')      //extrafield
+            {
+                $r = strcmp(strtoupper(trim($objA->product->array_options['options_'.$fieldname])), strtoupper(trim($objB->product->array_options['options_'.$fieldname])));
+
+                if ($r > 0) $r = -1;
+                elseif ($r < 0) $r = 1;
+                else $r = 0;
+
+                return $r;
+
+            } else
+            {
+
+                $r = strcmp(strtoupper(trim($objA->product->$fieldname)), strtoupper(trim($objB->product->$fieldname)));
+
+                if ($r > 0) $r = -1;
+                elseif ($r < 0) $r = 1;
+                else $r = 0;
+
+                return $r;
+            }
+
+        } elseif (GETPOST('sortorder') == 'asc') {      //tri croissant
+
+            if($fieldtype == 'ef')      //extrafield
+            {
+                $r = strcmp(strtoupper(trim($objA->product->array_options['options_'.$fieldname])), strtoupper(trim($objB->product->array_options['options_'.$fieldname])));
+
+                if ($r < 0) $r = -1;
+                elseif ($r > 0) $r = 1;
+                else $r = 0;
+
+                return $r;
+
+            } else
+            {
+                $r = strcmp(strtoupper(trim($objA->product->$fieldname)), strtoupper(trim($objB->product->$fieldname)));
+
+                if ($r < 0) $r = -1;
+                elseif ($r > 0) $r = 1;
+                else $r = 0;
+
+                return $r;
+            }
+        }
+    }
 	
 	function changePMP(&$PDOdb) {
 		
