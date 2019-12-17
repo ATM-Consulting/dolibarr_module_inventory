@@ -227,7 +227,7 @@ class TInventory extends TObjetStd
             
             if($addWithCurrentDetails) {
                 $det->product->load_stock();
-                $det->qty_view = $det->product->stock_warehouse[$fk_entrepot]->real;
+                $det->qty_view = $detail->qty;
                 $det->new_pmp= $det->product->pmp;
             }
             

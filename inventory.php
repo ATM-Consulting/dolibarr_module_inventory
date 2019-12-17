@@ -318,7 +318,7 @@ function _action()
 			
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
-			
+
 			exportCSV($inventory);
 			
 			exit;
@@ -333,8 +333,8 @@ function _action()
 
 function _liste(&$user, &$db, &$conf, &$langs) 
 {	
-	global $dol_version;
-	llxHeader('',$langs->trans('inventoryListTitle'),'','');
+	global $dol_version, $module_helpurl;
+	llxHeader('',$langs->trans('inventoryListTitle'),$module_helpurl,'');
 	
 	$form=new TFormCore;
 
@@ -411,9 +411,10 @@ function _liste(&$user, &$db, &$conf, &$langs)
 
 function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 {
+	global $module_helpurl;
 	dol_include_once('/categories/class/categorie.class.php');    
         
-	llxHeader('',$langs->trans('inventorySelectWarehouse'),'','');
+	llxHeader('',$langs->trans('inventorySelectWarehouse'),$module_helpurl,'');
 	print dol_get_fiche_head(inventoryPrepareHead($inventory));
 	
 	$form=new TFormCore('inventory.php', 'confirmCreate');
@@ -482,7 +483,8 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 
 function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit')
 {
-	llxHeader('',$langs->trans('inventoryEdit'),'','');
+	global $module_helpurl;
+	llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
 	
 	$warehouse = new Entrepot($db);
 	$warehouse->fetch($inventory->fk_warehouse);
@@ -667,77 +669,117 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 
 function exportCSV(&$inventory) {
 	global $conf;
-	
+
 	header('Content-Type: application/octet-stream');
     header('Content-disposition: attachment; filename=inventory-'. $inventory->getId().'-'.date('Ymd-His').'.csv');
     header('Pragma: no-cache');
     header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
     header('Expires: 0');
-	
-	echo 'Ref;Label;barcode;qty theorique;PMP;dernier PA;';
+
+
+	echo 'Ref;Label;';
+	if($inventory->per_batch) echo 'Lot;';
+	echo 'barcode;qty theorique;PMP;dernier PA;';
 	if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) echo 'PA courant;';
 	echo 'qty réelle;PMP;dernier PA;';
 	if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) echo 'PA courant;';
 	echo 'qty regulée;'."\r\n";
-	
+
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
 	{
 		$product = & $TInventorydet->product;
 		$stock = $TInventorydet->qty_stock;
-	
+		$lot = $TInventorydet->lot;
+
         $pmp = $TInventorydet->pmp;
 		$pmp_actual = $pmp * $stock;
 		$inventory->amount_actual+=$pmp_actual;
 
         $last_pa = $TInventorydet->pa;
         $current_pa = $TInventorydet->current_pa;
-	
+
 	if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL) && empty($pmp_actual)) {
 		if(!empty($last_pa)){ $pmp_actual = $last_pa* $stock;$pmp=$last_pa;}
 		else if(!empty($current_pa)) {$pmp_actual = $current_pa* $stock; $pmp=$current_pa;}
 	}
-	
+
 		if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) {
-			$row=array(
-				'produit' => $product->ref
-				,'label'=>$product->label
-				,'barcode' => $product->barcode
-				,'qty_stock' => $stock
-				,'pmp_stock'=>round($pmp_actual,2)
-	            		,'pa_stock'=>round($last_pa * $stock,2)
-				,'current_pa_stock'=>round($current_pa * $stock,2)
-			    	,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
-				,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
-	            		,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
-	        	,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
-				,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-				
-			);
-			
+			if($inventory->per_batch) {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'lot' => $lot
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'current_pa_stock' => round($current_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+					, 'current_pa_actual' => round($current_pa * $TInventorydet->qty_view, 2)
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+
+				);
+			} else {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'current_pa_stock' => round($current_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+					, 'current_pa_actual' => round($current_pa * $TInventorydet->qty_view, 2)
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+
+				);
+			}
 		}
 		else{
-			$row=array(
-				'produit' => $product->ref
-				,'label'=>$product->label
-				,'barcode' => $product->barcode
-				,'qty_stock' => $stock
-				,'pmp_stock'=>round($pmp_actual,2)
-	            ,'pa_stock'=>round($last_pa * $stock,2)
-	            ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
-				,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
-	            ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
-	            
-				,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-				
-		);
-			
+			if($inventory->per_batch) {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'lot' => $lot
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+
+				);
+			} else {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+
+				);
+			}
+
 		}
-		
-		
+
+
 		echo '"'.implode('";"', $row).'"'."\r\n";
-		
+
 	}
-	
+
 	exit;
 }
 
@@ -752,9 +794,10 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 		$prod = new Product($db);
 		$prod->fetch($v->fk_product);
 		//$prod->fetch_optionals($prod->id);
-		
+
 		$TInventoryPrint[] = array(
 			'product' => $prod->ref.' - '.$prod->label
+			,'lot' => isset($v->lot) ? $v->lot : ''
 			, 'qty_view' => $v->qty_view
 		);
 	}
@@ -766,11 +809,11 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 	$dir = $conf->inventory->multidir_output[$conf->entity].'/'.$dirName.'/';
 	
 	@mkdir($dir, 0777, true);
-	
-	$template = "templateINVENTORY.odt";
+
+	$inventory->per_batch ? $template = "templateINVENTORY_lot.odt" : $template = "templateINVENTORY.odt";
 	//$template = "templateOF.doc";
 
-	$file_gen = $TBS->render(dol_buildpath('inventory/exempleTemplate/'.$template)
+	$file_gen = $TBS->render(dol_buildpath('inventory/exempleTemplate/'. $template)
 		,array(
 			'TInventoryPrint'=>$TInventoryPrint
 		)
@@ -856,7 +899,7 @@ function _headerList($view) {
     global $conf,$user,$langs;
 	
 	?>
-			<tr style="background-color:#dedede;">
+			<tr style="background-color:#dedede !important;">
 				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
 				<th align="center">Entrepôt</td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
@@ -899,7 +942,7 @@ function _headerList($view) {
 				<th align="center" width="5%"></th>
 			</tr>
 			<?php if ($view['can_validate'] == 1) { ?>
-	    	<tr style="background-color:#dedede;">
+	    	<tr style="background-color:#dedede !important;">
 	    		<?php $colspan = empty($conf->barcode->enabled) ? 3 : 4;  ?>
 	    		<?php if(!empty($conf->productbatch->enabled)) $colspan++;  ?>
 	    	    <th colspan="<?php echo $colspan;  ?>">&nbsp;</th>

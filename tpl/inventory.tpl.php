@@ -42,7 +42,6 @@
             <?php
             }
             ?>
-            console.log(data);
             $input.val(0);
             $.jnotify("Quantité ajoutée : "+qty, "mesgs" );
             $('#a_save_qty_'+k).show();
@@ -71,6 +70,26 @@
             
         }).done(function(data) {
             $('#qty_view_'+k).html(data);
+			<?php
+			if($view['per_batch'])
+			{
+			?>
+				parentProdline = $('#prod_'+k).val();
+				parentProd = $('input[name=det_id_'+parentProdline+']').val();
+				$.ajax({
+					url:"script/interface.php"
+					,data:{
+						'fk_det_inventory' : parentProd
+						,'qty': -qty
+						,'put':'qty'
+					}
+
+				}).done(function(data) {
+					$('#qty_view_'+parentProdline).html(data);
+				});
+			<?php
+			}
+			?>
             $input.val(0);
             $.jnotify("Quantité enlevée : "+qty, "mesgs" );
             
