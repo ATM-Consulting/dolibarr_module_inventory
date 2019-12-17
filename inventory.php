@@ -936,7 +936,8 @@ function _headerList($view) {
     if (! $sortfield) $sortfield="p.ref";
     if (! $sortorder ) $sortorder = 'asc';
 
-    $param = "&contextpage=inventorylist&id=".$id_inventory."&action=view";             //paramètres supplémentaires du lien lorsqu'on souhaite trier la colonne
+
+    $param = "&contextpage=inventorylist&id=".$id_inventory."&action=".GETPOST('action'); //paramètres supplémentaires du lien lorsqu'on souhaite trier la colonne
 
     //champs à cocher du hamburger
     $form = new Form($db);
