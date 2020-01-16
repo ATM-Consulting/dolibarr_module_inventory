@@ -475,7 +475,7 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 
 function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit')
 {
-	global $module_helpurl;
+	global $module_helpurl, $hookmanager;
 	llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
 	
 	$warehouse = new Entrepot($db);
@@ -524,7 +524,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 	);
 
 	include './tpl/inventory.tpl.php';
-	
+	$reshook = $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $inventory, $action);
 	llxFooter('');
 }
 
