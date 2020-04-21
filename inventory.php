@@ -36,6 +36,10 @@ if(!$user->rights->inventory->read) accessforbidden();
 
 $langs->load("inventory@inventory");
 
+$contextpage = 'inventoryatmcard';
+
+include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
+
 $hookmanager->initHooks(array('inventoryatmcard'));
 
 _action();
@@ -78,12 +82,13 @@ function _action()
 			$inventory->set_values($_REQUEST);
 			
             $fk_inventory = $inventory->save($PDOdb);
-            $fk_category = (int)GETPOST('fk_category');
+            $fk_category = GETPOST('fk_category', 'array');
             $fk_supplier = (int)GETPOST('fk_supplier');
             $fk_warehouse = (int)GETPOST('fk_warehouse');
 			$only_prods_in_stock = (int)GETPOST('OnlyProdsInStock');
 			$inventoryWithBatchDetail = (int)GETPOST('inventoryWithBatchDetail');
 			$inventory->per_batch = $inventoryWithBatchDetail;
+
 			
 			$e = new Entrepot($db);
 			$e->fetch($fk_warehouse);
@@ -97,7 +102,7 @@ function _action()
 			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)';
 			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)';
 			$sql.= ' WHERE sm.fk_entrepot IN ('.implode(', ', $TChildWarehouses).')';
-			if ($fk_category > 0) $sql.= ' AND cp.fk_categorie = '.$fk_category;
+			if (is_array($fk_category) && !empty($fk_category)) $sql.= ' AND cp.fk_categorie IN ('.implode(',',$fk_category).')';
 			if ($fk_supplier > 0) $sql.= ' AND pfp.fk_soc = '.$fk_supplier;
 
 			$parameters=array('fk_category'=>$fk_category, 'fk_supplier' => $fk_supplier, 'only_prods_in_stock' => $only_prods_in_stock);
@@ -441,7 +446,7 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
         
         <tr>
             <td><?php echo $langs->trans('SelectCategory') ?></td>
-            <td><?php echo $formDoli->select_all_categories(0,'', 'fk_category') ?></td> 
+            <td><?php echo $formDoli->select_all_categories(0,'', 'fk_category[]') ?></td>
         </tr>
         <tr>
             <td><?php echo $langs->trans('SelectFournisseur') ?></td>
@@ -471,18 +476,51 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 	
 	print $form->end_form();	
 	llxFooter('');
+    ?>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('select[name*="fk_category"]').attr("multiple", 'multiple').select2().val('').change();//Pour vider le multiselect car select_all_categories est ...
+        });
+    </script>
+    <?php
 }
 
 function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit')
 {
-	global $module_helpurl, $hookmanager;
+    global $module_helpurl, $arrayfields, $extrafields, $hookmanager, $parameters, $extrafieldsobjectkey;
+
 	llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
+
+    $action = GETPOST('action');
+    $reshook=$hookmanager->executeHooks('doActions', $parameters,$inventory,$action);
 	
 	$warehouse = new Entrepot($db);
 	$warehouse->fetch($inventory->fk_warehouse);
 	
 	print dol_get_fiche_head(inventoryPrepareHead($inventory, $langs->trans('inventoryOfWarehouse', $warehouse->libelle), '&action='.$mode));
 	
+	//Récupération du tableau des champs extrafields que l'on peut ajouter en tant que colonne
+    $arrayfields = array();
+    $extrafields = new ExtraFields($db);
+
+    $product = new Product($db);
+
+    $extrafields->fetch_name_optionals_label('product');
+    $extrafields->getOptionalsFromPost($product->table_element,'','ef_');
+
+    if (is_array($extrafields->attributes[$product->table_element]['label']) && count($extrafields->attributes[$product->table_element]['label']))
+    {
+        foreach($extrafields->attributes[$product->table_element]['label'] as $key => $val)
+        {
+            if (! empty($extrafields->attributes[$product->table_element]['list'][$key]))
+                $arrayfields["ef.".$key]=array('label'=>$extrafields->attributes[$product->table_element]['label'][$key], 'checked'=>0, 'position'=>$extrafields->attributes[$product->table_element]['pos'][$key], 'enabled'=>(abs($extrafields->attributes[$product->table_element]['list'][$key])!=3 && $extrafields->attributes[$product->table_element]['perms'][$key]));
+        }
+    }
+
+    $extrafieldsobjectkey = 'product';
+
+    $arrayfields = dol_sort_array($arrayfields, 'position');
+
 	$form=new TFormCore();
 	$form->Set_typeaff($mode);
 	
@@ -531,7 +569,8 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, $mode)
 {
-	global $db,$conf;
+	global $db,$conf, $extrafieldsobjectkey;
+
 	$inventory->amount_actual = 0;
 	
 	$TCacheEntrepot = array();
@@ -623,6 +662,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 		        ,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
 		        ,'k'=>$k
 		        ,'id'=>$TInventorydet->getId()
+                ,'fk_product'=>$product->id
 		    );
 		    
 		    
@@ -652,6 +692,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
               
                 ,'k'=>$k
                 ,'id'=>$TInventorydet->getId()
+                ,'fk_product'=>$product->id
     		);
 		}
 		
@@ -888,12 +929,27 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <?php } 
 }
 function _headerList($view) {
-    global $conf,$user,$langs;
+    global $conf,$user,$langs, $db, $selectedfields, $arrayfields, $extrafields, $extrafieldsobjectkey;
+
+    //tri croissant/décroissant des colonnes
+    $sortfield = GETPOST("sortfield", 'alpha');             //nom du champs à trier
+    $sortorder = GETPOST("sortorder", 'alpha');             //ordre de tri
+    $id_inventory = GETPOST("id");
+
+    if (! $sortfield) $sortfield="p.ref";
+    if (! $sortorder ) $sortorder = 'asc';
+
+
+    $param = "&contextpage=inventorylist&id=".$id_inventory."&action=".GETPOST('action'); //paramètres supplémentaires du lien lorsqu'on souhaite trier la colonne
+
+    //champs à cocher du hamburger
+    $form = new Form($db);
+    $selectedfields=$form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, "inventoryatmcard");
 	
 	?>
 			<tr style="background-color:#dedede !important;">
-				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
-				<th align="center">Entrepôt</td>
+                <?php print_liste_field_titre("Produit", $_SERVER["PHP_SELF"],"p.ref", "", $param, "", $sortfield, $sortorder, "", ""); ?>
+				<th align="center" class="warehouse">Entrepôt</td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">Code-barre</td>
 				<?php } ?>
@@ -921,6 +977,7 @@ function _headerList($view) {
 				     $colspan = 2;
 					 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) $colspan++;
 				     if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) $colspan++;
+				     if(empty($user->rights->inventory->changePMP)) $colspan --;
 					
 	                 echo '<th align="center" width="20%" colspan="'.$colspan.'">Valeur réelle</th>';
 					 
@@ -931,13 +988,20 @@ function _headerList($view) {
 				<?php if ($view['is_already_validate'] != 1) { ?>
 					<th align="center" width="5%">#</th>
 				<?php } ?>
+                <?php //titres des extrafields cochés dans le hamburger
+                include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_title.tpl.php';
+                ?>
+                <?php echo '<th>&nbsp;</th>'; ?>
 				<th align="center" width="5%"></th>
+                <?php //menu hamburger
+                print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"].'?id=1&action=view',"",'','','',$sortfield,$sortorder,'center maxwidthsearch ');
+                ?>
 			</tr>
 			<?php if ($view['can_validate'] == 1) { ?>
 	    	<tr style="background-color:#dedede !important;">
 	    		<?php $colspan = empty($conf->barcode->enabled) ? 3 : 4;  ?>
 	    		<?php if(!empty($conf->productbatch->enabled)) $colspan++;  ?>
-	    	    <th colspan="<?php echo $colspan;  ?>">&nbsp;</th>
+	    	    <th class = "firstcolspan" colspan="<?php echo $colspan;  ?>">&nbsp;</th>
 	    	    <th>PMP<?php if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL)) echo img_info($langs->trans('UsePAifnull')); ?></th>
 	    	    <th>Dernier PA</th>
 	    	    <?php
@@ -964,6 +1028,11 @@ function _headerList($view) {
 	            <?php if ($view['is_already_validate'] != 1) { ?>
 	            <th>&nbsp;</th>
 	            <?php } ?>
+                <?php foreach($arrayfields as $field){
+                    if($field['checked'] == 1) echo '<th data-label="'. $field['label'] .'">&nbsp;</th>';          //espaces deuxième ligne de titre pour s'adapter à la première en fonction des extrafields
+                } ?>
+                <?php echo '<th>&nbsp;</th>'; ?>
+                <?php echo '<th>&nbsp;</th>'; ?>
 	    	</tr>
 	    	<?php 
 	} 

@@ -262,8 +262,11 @@
 	
 	<input type="hidden" name="action" value="save" />
 	<input type="hidden" name="id" value="<?php echo $inventoryTPL['id']; ?>" />
-	
-	<table width="100%" class="border workstation">
+    <input type="hidden" name="formfilteraction" value="list" />
+    <input type="hidden" name="sortfield" value="<?php echo $sortfield ?>">
+    <input type="hidden" name="sortorder" value="<?php echo $sortorder ?>">
+
+    <table width="100%" class="border workstation inventory_table">
 		<?php
 		
 		_headerList($view); 
@@ -271,7 +274,7 @@
         $total_pmp = $total_pa = $total_pmp_actual = $total_pa_actual =$total_current_pa=$total_current_pa_actual = 0;
         $i=1;
         foreach ($TInventory as $k=>$row) { 
-            
+
             $total_pmp+=round($row['pmp_stock'],2);
             $total_pa+=round($row['pa_stock'],2);
             $total_pmp_actual+=round($row['pmp_actual'],2);
@@ -283,8 +286,8 @@
 			} // Fin IF principal
 	    	?>
 			<tr style="background-color:<?php echo ($k%2 == 0) ? '#fff':'#eee'; ?>;">
-				<td align="left">&nbsp;&nbsp;<?php echo $row['produit']; ?></td>
-				<td align="center"><?php echo $row['entrepot']; ?></td>
+				<td align="left" class="produit">&nbsp;&nbsp;<?php echo $row['produit']; ?></td>
+				<td align="center" class="warehouse"><?php echo $row['entrepot']; ?></td>
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<td align="center"><?php echo $row['barcode']; ?></td>
 				<?php } ?>
@@ -323,13 +326,27 @@
 		               ?>
                     <td align="center"><?php echo $row['qty_regulated']; ?></td>
 				<?php } ?>
+                <?php
+
+                //définition de l'objet à afficher pour le tpl extrafields_list_print_fields
+                $object = new Product($db);               //produit
+                $object->fetch($row['fk_product']);
+                $obj = (object) $object->array_options; //extrafields du produit
+
+                include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_print_fields.tpl.php';
+                
+                ?>
 				<?php if ($view['is_already_validate'] != 1) { ?>
 					<td align="center" width="20%"><?php echo $row['action']; ?></td>
-				<?php } ?>
+				<?php }
+
+				?>
 			</tr>
 			<?php $i++; ?>
 		
-		<?php } 
+		<?php
+
+        }
 		
 		_footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actual, $total_current_pa,$total_current_pa_actual);
 		?>
