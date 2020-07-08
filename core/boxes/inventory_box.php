@@ -62,7 +62,6 @@ class inventorybox extends ModeleBoxes
 
         $this->max = $max;
 
-        //include_once DOL_DOCUMENT_ROOT . "/inventory/class/inventory.class.php";
 
         $text = $langs->trans("MyBoxDescription", $max);
         $this->info_box_head = array(
