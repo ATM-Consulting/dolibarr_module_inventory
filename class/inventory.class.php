@@ -31,6 +31,7 @@ class TInventory extends TObjetStd
 	{
 //		usort($this->TInventorydet, array('TInventory', 'customSort'));
         usort($this->TInventorydet, array('TInventory', 'orderSort'));
+        // FIX TK11812 : PR https://github.com/ATM-Consulting/dolibarr_module_inventory/pull/37
 		if ($this->per_batch && !empty($this->TInventorydet))
 		{
 			$tmpTab = array();
