@@ -629,8 +629,8 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 		    
 		} else {
 		    $TInventory[]=array(
-    			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
-    			,'entrepot'=>$e->getNomUrl(1)
+				'produit' => _productGetNomUrl($product).'&nbsp;-&nbsp;'.$product->label
+				,'entrepot'=>_entrepotGetNomUrl($e)
     			,'barcode' => $product->barcode
     			,'qty' => ($form->type_aff!='view' ? '<a id="a_save_qty_minus_-'.$k.'" href="javascript:save_qty_minus('.$k.')">'.img_picto('Enlever', 'minus16@inventory').'</a>' : '' ).
 			($form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'"))
@@ -927,3 +927,33 @@ function _headerList($view) {
 	
 }
 
+/**
+ * Performance-enhancing function: when getNomUrl() is called 6000 times, it weighs on performance; since there is only
+ * about one call per product, caching won't help much but simplifying is effective.
+ * @param Product $product
+ * @return string
+ */
+function _productGetNomUrl($product) {
+	global $conf;
+	if ($conf->global->INVENTORY_PERF_TWEAKS) {
+		return '<a href="' . DOL_URL_ROOT.'/product/card.php?id='.$product->id . '">' . $product->ref . '</a>';
+	} else {
+		return $product->getNomUrl(1);
+	}
+}
+
+/**
+ * Performance-enhancing function: when getNomUrl() is called 6000 times, it weighs on performance; since it is
+ * mostly called on the same entrepot, caching may be effective, though tests don't show anything significant
+ * @param Entrepot $entrepot
+ * @return string
+ */
+function _entrepotGetNomUrl($entrepot) {
+	// static variables keep their value across calls; this assignment will never be run (it is resolved at compile time)
+	static $CACHE_Entrepot_GetNomUrl = array();
+
+	if (!array_key_exists($entrepot->id, $CACHE_Entrepot_GetNomUrl)) {
+		$CACHE_Entrepot_GetNomUrl[$entrepot->id] = $entrepot->getNomUrl(1);
+	}
+	return $CACHE_Entrepot_GetNomUrl[$entrepot->id];
+}

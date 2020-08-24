@@ -31,6 +31,7 @@ if (! $res) {
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
 require_once '../lib/inventory.lib.php';
+dol_include_once('abricot/includes/lib/admin.lib.php');
 
 // Translations
 $langs->load("inventory@inventory");
@@ -187,6 +188,12 @@ print '<input type="text" name="INVENTORY_NB_PRODUCT_IN_SELECT" value="'.$conf->
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
+
+setup_print_on_off(
+	'INVENTORY_PERF_TWEAKS',
+	$langs->trans('INVENTORY_PERF_TWEAKS'),
+	'INVENTORY_PERF_TWEAKS_HELP'
+);
 
 print '</table>';
 
