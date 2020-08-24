@@ -23,10 +23,7 @@
  * 				Put some comments here
  */
 // Dolibarr environment
-$res = @include("../../main.inc.php"); // From htdocs directory
-if (! $res) {
-    $res = @include("../../../main.inc.php"); // From "custom" directory
-}
+require_once '../config.php';
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
@@ -79,7 +76,7 @@ if (preg_match('/del_(.*)/',$action,$reg))
  * View
  */
 $page_name = "inventorySetup";
-llxHeader('', $langs->trans($page_name));
+llxHeader('', $langs->trans($page_name), $module_helpurl);
 
 // Subheader
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'
@@ -92,7 +89,7 @@ dol_fiche_head(
     $head,
     'settings',
     $langs->trans("Module104420Name"),
-    0,
+    -1,
     "inventory@inventory"
 );
 
@@ -189,13 +186,25 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans('INVENTORY_USE_ONLY_INTEGER').'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print ajax_constantonoff('INVENTORY_USE_ONLY_INTEGER');
+print '</td></tr>';
+
 setup_print_on_off(
 	'INVENTORY_PERF_TWEAKS',
 	$langs->trans('INVENTORY_PERF_TWEAKS'),
 	'INVENTORY_PERF_TWEAKS_HELP'
 );
 
+
+
 print '</table>';
+
+dol_fiche_end(-1);
 
 llxFooter();
 
