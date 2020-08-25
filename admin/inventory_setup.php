@@ -193,7 +193,16 @@ print '<td align="right" width="300">';
 print ajax_constantonoff('INVENTORY_USE_ONLY_INTEGER');
 print '</td></tr>';
 
-
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'
+	  .$langs->trans('INVENTORY_PERF_TWEAKS')
+	  .'<br><small>' . $langs->trans('INVENTORY_PERF_TWEAKS_HELP') . '</small>'
+	  .'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print ajax_constantonoff('INVENTORY_PERF_TWEAKS');
+print '</td></tr>';
 
 print '</table>';
 
