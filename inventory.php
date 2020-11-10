@@ -83,10 +83,10 @@ function _action()
 
             $fk_inventory = $inventory->save($PDOdb);
             $fk_category = GETPOST('fk_category', 'array');
-            $fk_supplier = (int)GETPOST('fk_supplier');
-            $fk_warehouse = (int)GETPOST('fk_warehouse');
-			$only_prods_in_stock = (int)GETPOST('OnlyProdsInStock');
-			$inventoryWithBatchDetail = (int)GETPOST('inventoryWithBatchDetail');
+            $fk_supplier = GETPOST('fk_supplier','int');
+            $fk_warehouse = GETPOST('fk_warehouse','int');
+			$only_prods_in_stock = GETPOST('OnlyProdsInStock','int');
+			$inventoryWithBatchDetail = GETPOST('inventoryWithBatchDetail','int');
 			$inventory->per_batch = $inventoryWithBatchDetail;
 
 
@@ -120,10 +120,10 @@ function _action()
 
 			foreach($Tab as &$row) {
 
-                $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot, GETPOST('includeWithStockPMP')!='' );
+                $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot, GETPOST('includeWithStockPMP','alpha')!='' );
                 $product = new Product($db);
                 $product->fetch($row->fk_product);
-                if($inventoryWithBatchDetail && $product->hasbatch()) $inventory->add_batch($PDOdb, $row->fk_product, $row->fk_entrepot, $inventory->get_date('date_inventory', 'Y-m-d'), GETPOST('includeWithStockPMP')!='' );
+                if($inventoryWithBatchDetail && $product->hasbatch()) $inventory->add_batch($PDOdb, $row->fk_product, $row->fk_entrepot, $inventory->get_date('date_inventory', 'Y-m-d'), GETPOST('includeWithStockPMP','alpha')!='' );
 			}
 
 			$inventory->save($PDOdb);
@@ -491,7 +491,7 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 
 	llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
 
-    $action = GETPOST('action');
+    $action = GETPOST('action','alphanohtml');
     $reshook=$hookmanager->executeHooks('doActions', $parameters,$inventory,$action);
 
 	$warehouse = new Entrepot($db);
@@ -934,13 +934,13 @@ function _headerList($view) {
     //tri croissant/décroissant des colonnes
     $sortfield = GETPOST("sortfield", 'alpha');             //nom du champs à trier
     $sortorder = GETPOST("sortorder", 'alpha');             //ordre de tri
-    $id_inventory = GETPOST("id");
+    $id_inventory = GETPOST("id",'int');
 
     if (! $sortfield) $sortfield="p.ref";
     if (! $sortorder ) $sortorder = 'asc';
 
 
-    $param = "&contextpage=inventorylist&id=".$id_inventory."&action=".GETPOST('action'); //paramètres supplémentaires du lien lorsqu'on souhaite trier la colonne
+    $param = "&contextpage=inventorylist&id=".$id_inventory."&action=".GETPOST('action','alphanohtml'); //paramètres supplémentaires du lien lorsqu'on souhaite trier la colonne
 
     //champs à cocher du hamburger
     $form = new Form($db);

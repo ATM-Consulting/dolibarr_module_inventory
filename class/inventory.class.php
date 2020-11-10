@@ -66,13 +66,13 @@ class TInventory extends TObjetStd
     function orderSort(&$objA, &$objB){
 
 	    //champs à trier
-       $sortfield = GETPOST('sortfield');
+       $sortfield = GETPOST('sortfield','alpha');
 
        $TFieldparts =  explode('.', $sortfield, 2);
        $fieldtype = $TFieldparts[0];
        $fieldname = $TFieldparts[1];
 
-        if(GETPOST('sortorder') == 'desc') {    //tri decroissant
+        if(GETPOST('sortorder','alpha') == 'desc') {    //tri decroissant
 
             if($fieldtype == 'ef')      //extrafield
             {
@@ -107,7 +107,7 @@ class TInventory extends TObjetStd
                 return $r;
             }
 
-        } elseif (GETPOST('sortorder') == 'asc') {      //tri croissant
+        } elseif (GETPOST('sortorder','alpha') == 'asc') {      //tri croissant
 
             if($fieldtype == 'ef')      //extrafield
             {
