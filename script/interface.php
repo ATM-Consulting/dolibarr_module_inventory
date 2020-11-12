@@ -4,8 +4,8 @@
     require('../class/inventory.class.php');
 
     
-    $get = GETPOST('get');
-    $put = GETPOST('put');
+    $get = GETPOST('get','alpha');
+    $put = GETPOST('put','alpha');
     
     
     $PDOdb=new TPDOdb;
@@ -14,11 +14,11 @@
         case 'qty':
             if (!$user->rights->inventory->write) { echo -1; exit; }
             
-            $fk_det_inventory = GETPOST('fk_det_inventory');
+            $fk_det_inventory = GETPOST('fk_det_inventory','int');
             
             $det = new TInventorydet;
             if( $det->load($PDOdb, $fk_det_inventory)) {
-                $det->qty_view+=GETPOST('qty');
+                $det->qty_view+=GETPOST('qty','int');
                 $det->save($PDOdb);
                 
                 echo $det->qty_view;
@@ -32,11 +32,11 @@
         case 'pmp':
             if (!$user->rights->inventory->write || !$user->rights->inventory->changePMP) { echo -1; exit; }
             
-            $fk_det_inventory = GETPOST('fk_det_inventory');
+            $fk_det_inventory = GETPOST('fk_det_inventory','int');
             
             $det = new TInventorydet;
             if( $det->load($PDOdb, $fk_det_inventory)) {
-                $det->new_pmp=price2num(GETPOST('pmp'));
+                $det->new_pmp=price2num(GETPOST('pmp','int'));
                 $det->save($PDOdb);
                 
                 echo $det->new_pmp;
@@ -50,12 +50,12 @@
         case 'batch':
             if (!$user->rights->inventory->write) { echo -1; exit; }
             
-            $index = (int) GETPOST('index');
-            $lot = GETPOST('batch');
-            $qty = (float) GETPOST('qty');
+            $index =  (int)GETPOST('index','int');
+            $lot = GETPOST('batch','alpha');
+            $qty =  (float)GETPOST('qty','int');
             
             // id de l'inventaire
-            $fk_inventory = (int) GETPOST('fk_inventory');
+            $fk_inventory =  (int)GETPOST('fk_inventory','int');
             $inv = new TInventory();
             $inv->load($PDOdb, $fk_inventory);
             
