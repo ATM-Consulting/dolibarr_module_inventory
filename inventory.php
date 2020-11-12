@@ -86,7 +86,7 @@ function _action()
             $fk_supplier = (int)GETPOST('fk_supplier','int');
             $fk_warehouse = (int)GETPOST('fk_warehouse','int');
 			$only_prods_in_stock = GETPOST('OnlyProdsInStock','int');
-			$inventoryWithBatchDetail = GETPOST('inventoryWithBatchDetail','int');
+			$inventoryWithBatchDetail = (int)GETPOST('inventoryWithBatchDetail','int');
 			$inventory->per_batch = $inventoryWithBatchDetail;
 
 
