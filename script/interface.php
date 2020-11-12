@@ -50,12 +50,12 @@
         case 'batch':
             if (!$user->rights->inventory->write) { echo -1; exit; }
             
-            $index =  GETPOST('index','int');
+            $index =  (int)GETPOST('index','int');
             $lot = GETPOST('batch','alpha');
-            $qty =  GETPOST('qty','int');
+            $qty =  (float)GETPOST('qty','int');
             
             // id de l'inventaire
-            $fk_inventory =  GETPOST('fk_inventory','int');
+            $fk_inventory =  (int)GETPOST('fk_inventory','int');
             $inv = new TInventory();
             $inv->load($PDOdb, $fk_inventory);
             
