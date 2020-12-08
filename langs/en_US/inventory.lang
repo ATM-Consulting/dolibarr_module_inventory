@@ -7,3 +7,7 @@ inventorySetup = inventory module setup
 inventoryAbout = About inventory
 
 INVENTORY_DISABLE_VIRTUAL=Usefull if you don't want to unstock children product from virtual product in inventory
+
+
+INVENTORY_PERF_TWEAKS=Improve performance when many products exist (more than 1000)
+INVENTORY_PERF_TWEAKS_HELP=Pages will display much faster when creating or viewing inventories. The tradeoff is that detailed tooltips will be disabled when hovering the mouse cursor over a product ref.
