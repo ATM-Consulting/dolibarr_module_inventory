@@ -333,7 +333,7 @@
                 $object->fetch($row['fk_product']);
                 $obj = (object) $object->array_options; //extrafields du produit
 
-				if(intval(DOL_VERSION) > 8 ) {
+				if(intval(DOL_VERSION) > 6 ) {
 					include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_list_print_fields.tpl.php';
 				}
                 ?>
