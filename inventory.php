@@ -988,14 +988,18 @@ function _headerList($view) {
 				<?php } ?>
 				<?php if ($view['is_already_validate'] != 1) { ?>
 					<th align="center" width="5%">#</th>
-				<?php } ?>
-                <?php //titres des extrafields cochés dans le hamburger
-                include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_title.tpl.php';
-                ?>
-                <?php echo '<th>&nbsp;</th>'; ?>
+				<?php }
+				//titres des extrafields cochés dans le hamburger
+				if(intval(DOL_VERSION) > 6 ){
+                	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_title.tpl.php';
+				}
+                 echo '<th>&nbsp;</th>';
+?>
 				<th align="center" width="5%"></th>
                 <?php //menu hamburger
-                print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"].'?id=1&action=view',"",'','','',$sortfield,$sortorder,'center maxwidthsearch ');
+				if(intval(DOL_VERSION) > 6 ) {
+					print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"] . '?id=1&action=view', "", '', '', '', $sortfield, $sortorder, 'center maxwidthsearch ');
+				}
                 ?>
 			</tr>
 			<?php if ($view['can_validate'] == 1) { ?>
@@ -1033,7 +1037,11 @@ function _headerList($view) {
                     if($field['checked'] == 1) echo '<th data-label="'. $field['label'] .'">&nbsp;</th>';          //espaces deuxième ligne de titre pour s'adapter à la première en fonction des extrafields
                 } ?>
                 <?php echo '<th>&nbsp;</th>'; ?>
-                <?php echo '<th>&nbsp;</th>'; ?>
+                <?php
+				if(intval(DOL_VERSION) > 6 ) {
+					echo '<th>&nbsp;</th>';
+				}
+				?>
 	    	</tr>
 	    	<?php
 	}
