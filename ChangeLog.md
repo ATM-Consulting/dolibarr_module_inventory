@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- NEW : hooks on list
+
 ## Version 1.9.1
 
 ### Fix 
@@ -26,3 +28,4 @@ All notable changes to this project will be documented in this file.
 - FIX : Tk11498 - new option => huge performance boost by replacing/caching getNomURL()
 - FIX : Minus doesn't change total quantity
 - FIX : Tk9573 : arrondi pour éviter les valeurs de stock à 1.4210854715202E-14
+- FIX : Fatal error on Dolibarr <= 6.0
