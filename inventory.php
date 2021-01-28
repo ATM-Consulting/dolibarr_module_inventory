@@ -1047,8 +1047,7 @@ function _headerList($view) {
 				$reshook=$hookmanager->executeHooks('printFieldListOption',$parameters);    // Note that $action and $object may have been modified by hook
 				print $hookmanager->resPrint;
 
-				if ($view['is_already_validate'] != 1) { print '<th>&nbsp;</th>'; } ?>
-
+				if ($view['is_already_validate'] != 1) { print '<th>&nbsp;</th>'; }
 
 				if(intval(DOL_VERSION) > 6 ) {
 					foreach ($arrayfields as $field) {
