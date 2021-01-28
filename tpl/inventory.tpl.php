@@ -333,8 +333,9 @@
                 $object->fetch($row['fk_product']);
                 $obj = (object) $object->array_options; //extrafields du produit
 
-                include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_print_fields.tpl.php';
-                
+				if(intval(DOL_VERSION) > 6 ) {
+					include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_list_print_fields.tpl.php';
+				}
                 ?>
 				<?php if ($view['is_already_validate'] != 1) { ?>
 					<td align="center" width="20%"><?php echo $row['action']; ?></td>
