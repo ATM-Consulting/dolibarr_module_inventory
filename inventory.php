@@ -701,6 +701,9 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
     		);
 		}
 
+
+		$inventoryItem['fk_warehouse'] = $e->id;
+
 		$TInventory[] = $inventoryItem;
 	}
 
@@ -935,7 +938,7 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <?php }
 }
 function _headerList($view) {
-    global $conf,$user,$langs, $db, $selectedfields, $arrayfields, $extrafields, $extrafieldsobjectkey, $hookmanager;
+    global $conf,$user,$langs, $db, $selectedfields, $arrayfields, $extrafields, $extrafieldsobjectkey, $hookmanager, $inventory;
 
     //tri croissant/décroissant des colonnes
     $sortfield = GETPOST("sortfield", 'alpha');             //nom du champs à trier
@@ -994,8 +997,14 @@ function _headerList($view) {
 				<?php }
 
 				// Hook fields
-				$parameters=array('arrayfields'=>$arrayfields);
-				$reshook=$hookmanager->executeHooks('printFieldListTitle',$parameters);    // Note that $action and $object may have been modified by hook
+				$parameters=array(
+						'arrayfields'=>$arrayfields,
+						'selectedfields' => $selectedfields,
+						'sortfield' => $sortfield,
+						'sortorder' => $sortorder,
+						'baseUrl' => $_SERVER["PHP_SELF"] . '?id=1&action=view'
+				);
+				$reshook=$hookmanager->executeHooks('printFieldListTitle',$parameters, $inventory);    // Note that $action and $object may have been modified by hook
 				print $hookmanager->resPrint;
 
 				if ($view['is_already_validate'] != 1) { ?>
@@ -1043,8 +1052,14 @@ function _headerList($view) {
 	            <?php
 
 				// Fields from hook
-				$parameters=array('arrayfields'=>$arrayfields);
-				$reshook=$hookmanager->executeHooks('printFieldListOption',$parameters);    // Note that $action and $object may have been modified by hook
+				$parameters=array(
+						'arrayfields'=>$arrayfields,
+						'selectedfields' => $selectedfields,
+						'sortfield' => $sortfield,
+						'sortorder' => $sortorder,
+						'baseUrl' => $_SERVER["PHP_SELF"] . '?id=1&action=view'
+				);
+				$reshook=$hookmanager->executeHooks('printFieldListOption',$parameters, $inventory);    // Note that $action and $object may have been modified by hook
 				print $hookmanager->resPrint;
 
 				if ($view['is_already_validate'] != 1) { print '<th>&nbsp;</th>'; }
