@@ -96,6 +96,12 @@ function _action()
 			if(method_exists($e, 'get_children_warehouses')) $e->get_children_warehouses($fk_warehouse, $TChildWarehouses);
 
 			$sql = 'SELECT p.rowid AS fk_product, sm.fk_entrepot, SUM(sm.value) AS qty';
+
+			// Add fields from hooks
+			$parameters=array();
+			$reshook=$hookmanager->executeHooks('printFieldListSelect',$parameters);    // Note that $action and $object may have been modified by hook
+			$sql.=$hookmanager->resPrint;
+
 			$sql.= ' FROM '.MAIN_DB_PREFIX.'product p';
 			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_stock ps ON (p.rowid = ps.fk_product)';
 			$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'stock_mouvement sm ON (p.rowid = sm.fk_product)';
@@ -620,7 +626,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 
 		    if ($TInventorydet->lot == '') $lastprodline = $k;
 
-		    $TInventory[]=array(
+		    $inventoryItem = array(
 // 		        'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
 // 		        ,'entrepot'=>$e->getNomUrl(1)
 // 		        ,'barcode' => $product->barcode
@@ -666,11 +672,10 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 		    );
 
 
-
 		    //var_dump($product->stock_warehouse[$e->id]->detail_batch); exit;
 
 		} else {
-		    $TInventory[]=array(
+			$inventoryItem = array(
 				'produit' => _productGetNomUrl($product).'&nbsp;-&nbsp;'.$product->label
 				,'entrepot'=>_entrepotGetNomUrl($e)
     			,'barcode' => $product->barcode
@@ -696,6 +701,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
     		);
 		}
 
+		$TInventory[] = $inventoryItem;
 	}
 
 }
@@ -929,7 +935,7 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <?php }
 }
 function _headerList($view) {
-    global $conf,$user,$langs, $db, $selectedfields, $arrayfields, $extrafields, $extrafieldsobjectkey;
+    global $conf,$user,$langs, $db, $selectedfields, $arrayfields, $extrafields, $extrafieldsobjectkey, $hookmanager;
 
     //tri croissant/décroissant des colonnes
     $sortfield = GETPOST("sortfield", 'alpha');             //nom du champs à trier
@@ -985,8 +991,14 @@ function _headerList($view) {
 					?>
 
 					<th align="center" width="15%">Quantité régulée</th>
-				<?php } ?>
-				<?php if ($view['is_already_validate'] != 1) { ?>
+				<?php }
+
+				// Hook fields
+				$parameters=array('arrayfields'=>$arrayfields);
+				$reshook=$hookmanager->executeHooks('printFieldListTitle',$parameters);    // Note that $action and $object may have been modified by hook
+				print $hookmanager->resPrint;
+
+				if ($view['is_already_validate'] != 1) { ?>
 					<th align="center" width="5%">#</th>
 				<?php }
 				//titres des extrafields cochés dans le hamburger
@@ -1030,9 +1042,15 @@ function _headerList($view) {
 
 				?>
 	            <th>&nbsp;</th>
-	            <?php if ($view['is_already_validate'] != 1) { ?>
-	            <th>&nbsp;</th>
-	            <?php } ?>
+	            <?php
+
+				// Fields from hook
+				$parameters=array('arrayfields'=>$arrayfields);
+				$reshook=$hookmanager->executeHooks('printFieldListOption',$parameters);    // Note that $action and $object may have been modified by hook
+				print $hookmanager->resPrint;
+
+				if ($view['is_already_validate'] != 1) { print '<th>&nbsp;</th>'; } ?>
+
                 <?php foreach($arrayfields as $field){
                     if($field['checked'] == 1) echo '<th data-label="'. $field['label'] .'">&nbsp;</th>';          //espaces deuxième ligne de titre pour s'adapter à la première en fonction des extrafields
                 } ?>

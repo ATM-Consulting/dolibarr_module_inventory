@@ -328,6 +328,12 @@
 				<?php } ?>
                 <?php
 
+
+				// Fields from hook
+				$parameters=array('arrayfields'=> $arrayfields, 'k' => $k, 'line' => $row);
+				$reshook=$hookmanager->executeHooks('printFieldListValue',$parameters);    // Note that $action and $object may have been modified by hook
+				print $hookmanager->resPrint;
+
                 //définition de l'objet à afficher pour le tpl extrafields_list_print_fields
                 $object = new Product($db);               //produit
                 $object->fetch($row['fk_product']);
