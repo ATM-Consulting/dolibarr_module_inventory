@@ -328,13 +328,20 @@
 				<?php } ?>
                 <?php
 
+
+				// Fields from hook
+				$parameters=array('arrayfields'=> $arrayfields, 'k' => $k, 'line' => $row);
+				$reshook=$hookmanager->executeHooks('printFieldListValue',$parameters, $inventory);    // Note that $action and $object may have been modified by hook
+				print $hookmanager->resPrint;
+
                 //définition de l'objet à afficher pour le tpl extrafields_list_print_fields
                 $object = new Product($db);               //produit
                 $object->fetch($row['fk_product']);
                 $obj = (object) $object->array_options; //extrafields du produit
 
-                include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_print_fields.tpl.php';
-                
+				if(intval(DOL_VERSION) > 6 ) {
+					include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_list_print_fields.tpl.php';
+				}
                 ?>
 				<?php if ($view['is_already_validate'] != 1) { ?>
 					<td align="center" width="20%"><?php echo $row['action']; ?></td>
