@@ -329,10 +329,10 @@ function _action()
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
 
-			exportCSV($inventory);
+            exportCSV($inventory);
+            exit;
 
-			exit;
-			break;
+            break;
 
 		default:
 			//Rien
@@ -710,7 +710,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 }
 
 function exportCSV(&$inventory) {
-	global $conf;
+	global $conf, $db, $hookmanager;
 
 	header('Content-Type: application/octet-stream');
     header('Content-disposition: attachment; filename=inventory-'. $inventory->getId().'-'.date('Ymd-His').'.csv');
@@ -718,14 +718,21 @@ function exportCSV(&$inventory) {
     header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
     header('Expires: 0');
 
-
 	echo 'Ref;Label;';
 	if($inventory->per_batch) echo 'Lot;';
 	echo 'barcode;qty theorique;PMP;dernier PA;';
 	if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) echo 'PA courant;';
 	echo 'qty réelle;PMP;dernier PA;';
 	if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) echo 'PA courant;';
-	echo 'qty regulée;'."\r\n";
+	echo 'qty regulée;';
+
+    // Add fields from hooks
+    $parameters=array();
+    $reshook=$hookmanager->executeHooks('printExportColumnTitle',$parameters);    // Note that $action and $object may have been modified by hook
+    if ($reshook < 0) dol_print_error($db, $hookmanager->error, $hookmanager->errors);
+	else print $hookmanager->resPrint;
+
+	echo "\r\n";
 
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
 	{
@@ -761,7 +768,6 @@ function exportCSV(&$inventory) {
 					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
 					, 'current_pa_actual' => round($current_pa * $TInventorydet->qty_view, 2)
 					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-
 				);
 			} else {
 				$row = array(
@@ -777,7 +783,6 @@ function exportCSV(&$inventory) {
 					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
 					, 'current_pa_actual' => round($current_pa * $TInventorydet->qty_view, 2)
 					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-
 				);
 			}
 		}
@@ -794,9 +799,7 @@ function exportCSV(&$inventory) {
 					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
 					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
 					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
-
 					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-
 				);
 			} else {
 				$row = array(
@@ -809,16 +812,18 @@ function exportCSV(&$inventory) {
 					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
 					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
 					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
-
 					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-
 				);
 			}
 
 		}
 
+        // Add fields from hooks
+        $parameters=array('row'=>&$row, 'TInventorydet'=>$TInventorydet);
+        $reshook=$hookmanager->executeHooks('printExportColumnContent',$parameters);    // Note that $action and $object may have been modified by hook
+        if ($reshook < 0) dol_print_error($db, $hookmanager->error, $hookmanager->errors);
 
-		echo '"'.implode('";"', $row).'"'."\r\n";
+        echo '"'.implode('";"', $row).'"'."\r\n";
 
 	}
 
@@ -827,6 +832,7 @@ function exportCSV(&$inventory) {
 
 function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 {
+    global $hookmanager;
 	$TBS=new TTemplateTBS();
 
 	$TInventoryPrint = array(); // Tableau envoyé à la fonction render contenant les informations concernant l'inventaire
@@ -839,9 +845,14 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 
 		$TInventoryPrint[] = array(
 			'product' => $prod->ref.' - '.$prod->label
-			,'lot' => isset($v->lot) ? $v->lot : ''
+			, 'lot' => isset($v->lot) ? $v->lot : ''
 			, 'qty_view' => $v->qty_view
 		);
+
+		// Add fields from hooks
+        $parameters=array('TInventoryPrint'=>&$TInventoryPrint, 'TInventorydet'=> $v);
+        $reshook=$hookmanager->executeHooks('printODTColumn',$parameters);    // Note that $action and $object may have been modified by hook
+        if ($reshook < 0) dol_print_error($db, $hookmanager->error, $hookmanager->errors);
 	}
 
 	$warehouse = new Entrepot($db);
