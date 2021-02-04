@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 - NEW : hooks on list
+- NEW : hooks on CSV and ODT exports
 
 ## Version 1.9.1
 
