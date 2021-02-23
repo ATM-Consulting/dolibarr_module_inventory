@@ -728,7 +728,7 @@ function exportCSV(&$inventory) {
 
     // Add fields from hooks
     $parameters=array();
-    $reshook=$hookmanager->executeHooks('printExportColumnTitle',$parameters);    // Note that $action and $object may have been modified by hook
+    $reshook=$hookmanager->executeHooks('printExportColumnTitle',$parameters, $inventory);    // Note that $action and $object may have been modified by hook
     if ($reshook < 0) dol_print_error($db, $hookmanager->error, $hookmanager->errors);
 	else print $hookmanager->resPrint;
 
@@ -820,7 +820,7 @@ function exportCSV(&$inventory) {
 
         // Add fields from hooks
         $parameters=array('row'=>&$row, 'TInventorydet'=>$TInventorydet);
-        $reshook=$hookmanager->executeHooks('printExportColumnContent',$parameters);    // Note that $action and $object may have been modified by hook
+        $reshook=$hookmanager->executeHooks('printExportColumnContent',$parameters, $inventory);    // Note that $action and $object may have been modified by hook
         if ($reshook < 0) dol_print_error($db, $hookmanager->error, $hookmanager->errors);
 
         echo '"'.implode('";"', $row).'"'."\r\n";
@@ -851,7 +851,7 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 
 		// Add fields from hooks
         $parameters=array('TInventoryPrint'=>&$TInventoryPrint, 'TInventorydet'=> $v);
-        $reshook=$hookmanager->executeHooks('printODTColumn',$parameters);    // Note that $action and $object may have been modified by hook
+        $reshook=$hookmanager->executeHooks('printODTColumn',$parameters, $inventory);    // Note that $action and $object may have been modified by hook
         if ($reshook < 0) dol_print_error($db, $hookmanager->error, $hookmanager->errors);
 	}
 
