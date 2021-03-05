@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 - NEW : hooks on list
 - NEW : hooks on CSV and ODT exports
 
+## Version 1.11.1
+
+### Fix 
+
+- Ajout de l'objet inventory pour fonctionnement correct des hooks pour export CSV et ODT
+
 ## Version 1.9.1
 
 ### Fix 
