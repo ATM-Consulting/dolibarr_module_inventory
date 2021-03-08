@@ -382,10 +382,13 @@
 			<?php if ($view['mode'] == 'edit') { ?>
 				<input name="back" type="button" class="butAction" value="Quitter la saisie" onclick="document.location='?id=<?php echo $inventoryTPL['id']; ?>&action=view';" />
 			<?php } ?>
-			<?php if ($view['can_validate'] == 1) { ?>
+			<?php if ($view['can_validate'] == 1) {
+			    $urlToken = '';
+                if (function_exists('newToken')) $urlToken = "&token=".newToken();
+                ?>
                 <a onclick="if (!confirm('Confirmez-vous la vidange ?')) return false;" href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=flush" class="butActionDelete">Vider</a>
                 &nbsp;&nbsp;&nbsp;
-                <a onclick="if (!confirm('Confirmez-vous la suppression ?')) return false;" href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=delete" class="butActionDelete">Supprimer</a>
+                <a onclick="if (!confirm('Confirmez-vous la suppression ?')) return false;" href="<?php echo $view['url']; ?>?id=<?php echo $inventoryTPL['id']; ?>&action=delete<?php echo $urlToken; ?>" class="butActionDelete">Supprimer</a>
         	<?php } ?>
 		</div>
 	<?php } ?>

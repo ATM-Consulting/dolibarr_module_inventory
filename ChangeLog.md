@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 - NEW : hooks on list
 - NEW : hooks on CSV and ODT exports
 
+## Version 1.11.2
+
+### Fix 
+
+- V13 Compatibility action links
+
 ## Version 1.11.1
 
 ### Fix 
