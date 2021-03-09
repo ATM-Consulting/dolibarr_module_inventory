@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 - NEW : hooks on list
 - NEW : hooks on CSV and ODT exports
+- FIX : PHP error for non countable element *2021-03-09*
 
 ## Version 1.11.1
 

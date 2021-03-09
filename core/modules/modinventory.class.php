@@ -58,7 +58,7 @@ class modinventory extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module inventory";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.11.1';
+		$this->version = '1.11.2';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -168,7 +168,7 @@ class modinventory extends DolibarrModules
 		//$this->boxes=array(array(0=>array('file'=>'myboxa.php','note'=>'','enabledbydefaulton'=>'Home'),1=>array('file'=>'myboxb.php','note'=>''),2=>array('file'=>'myboxc.php','note'=>'')););
 
 		$langs->load('inventory@inventory');
-		
+
 		// Permissions
 		$this->rights = array();		// Permission array used by this module
 		$r=0;
@@ -181,25 +181,25 @@ class modinventory extends DolibarrModules
 		// $this->rights[$r][4] = 'level1';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		// $this->rights[$r][5] = 'level2';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		// $r++;
-		
+
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
 		$this->rights[$r][1] = 'inventoryReadPermission';	// Permission label
 		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
 		$this->rights[$r][4] = 'read';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
-		
+
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
 		$this->rights[$r][1] = 'inventoryCreatePermission';	// Permission label
 		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
 		$this->rights[$r][4] = 'create';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
-	
+
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
 		$this->rights[$r][1] = 'inventoryWritePermission';	// Permission label
 		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
 		$this->rights[$r][4] = 'write';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
-		
+
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
 		$this->rights[$r][1] = 'inventoryValidatePermission';	// Permission label
 		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
@@ -263,7 +263,7 @@ class modinventory extends DolibarrModules
 								'target'=>'',
 								'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=stock',			                // Put 0 if this is a top menu
 								'type'=>'left',			                // This is a Top menu entry
 
@@ -313,7 +313,7 @@ class modinventory extends DolibarrModules
 		define('INC_FROM_DOLIBARR', true);
 		dol_include_once('/inventory/config.php');
 		dol_include_once("/inventory/script/create-maj-base.php");
-		
+
 		return $this->_init($sql, $options);
 	}
 
