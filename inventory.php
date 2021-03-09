@@ -591,7 +591,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 		{
     		$product->load_stock();
     		$lotstotal = 0;
-    		if (count($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch))
+    		if (!empty($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch) && is_array($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch))
     		{
     		    foreach ($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch as $lot => $details)
     		    {
