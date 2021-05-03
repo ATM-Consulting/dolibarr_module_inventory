@@ -479,7 +479,7 @@ class TInventory extends TObjetStd
 
         $title = !empty($i->title) ? $i->title : $langs->trans('inventoryTitle').' '.$i->getId();
 
-        return '<a href="'.dol_buildpath('/inventory/inventory.php?id='.$i->getId().'&action=view', 1).'">'.img_picto('','object_list.png','',0).' '.$title.'</a>';
+        return '<a href="'.dol_buildpath('/inventory/inventory.php?id='.$i->getId().'&action=view&sortfield=p.ref&sortorder=ASC', 1).'">'.img_picto('','object_list.png','',0).' '.$title.'</a>';
 
     }
 }
