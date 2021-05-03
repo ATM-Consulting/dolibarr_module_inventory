@@ -7,6 +7,12 @@ All notable changes to this project will be documented in this file.
 - NEW : hooks on CSV and ODT exports
 - FIX : PHP error for non countable element *2021-03-09*
 
+## Version 1.11.3
+
+### Fix
+
+- Sort inventory's details on p.ref ASC by default
+
 ## Version 1.11.2
 
 ### Fix 
