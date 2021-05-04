@@ -3,28 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- NEW : hooks on list
-- NEW : hooks on CSV and ODT exports
 - FIX : PHP error for non countable element *2021-03-09*
-
-## Version 1.11.2
-
-### Fix 
-
-- V13 Compatibility action links
-
-## Version 1.11.1
-
-### Fix 
-
-- Ajout de l'objet inventory pour fonctionnement correct des hooks pour export CSV et ODT
-
-## Version 1.9.1
-
-### Fix 
-
-- Remove unused Box
-
+- FIX : Sort inventory's details on p.ref ASC by default *2021-03-09* - 1.11.2
+- FIX : V13 Compatibility action links - 1.11.1
+- NEW : Ajout de l'objet inventory pour fonctionnement correct des hooks pour export CSV et ODT - 1.11.0
+- NEW : hooks on list && hooks on CSV and ODT exports - 1.10.0
 
 ## Version 1.9
 
@@ -38,6 +21,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- FIX : Remove unused Box - 1.9.1
 - FIX : Getposts in modules
 - FIX : Tk11498 - new option => huge performance boost by replacing/caching getNomURL()
 - FIX : Minus doesn't change total quantity
