@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## Version 1.11
+
 - FIX : PHP error for non countable element *2021-03-09*
 - FIX : Sort inventory's details on p.ref ASC by default *2021-03-09* - 1.11.2
 - FIX : V13 Compatibility action links - 1.11.1
