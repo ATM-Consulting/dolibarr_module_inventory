@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ## Version 1.11
 
+- FIX : V13 Compatibility no token renewal *2021-05-07* - 1.11.4
 - FIX : PHP error for non countable element *2021-03-09*
 - FIX : Sort inventory's details on p.ref ASC by default *2021-03-09* - 1.11.2
 - FIX : V13 Compatibility action links - 1.11.1
