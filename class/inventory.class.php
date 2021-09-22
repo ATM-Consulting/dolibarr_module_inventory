@@ -203,7 +203,7 @@ class TInventory extends TObjetStd
 			 $this->regulate($PDOdb);
 		}
 
-		parent::save($PDOdb);
+		return parent::save($PDOdb);
 	}
 
 	function set_values($Tab)

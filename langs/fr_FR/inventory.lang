@@ -46,3 +46,4 @@ INVENTORY_USE_ONLY_INTEGER=Restrindre la saisie des quantités sur un mode unita
 
 INVENTORY_PERF_TWEAKS=Optimiser la performance pour de nombreux produits (plus de 1000)
 INVENTORY_PERF_TWEAKS_HELP=La création et la consultation des inventaires sera beaucoup plus rapide, mais il n'y aura plus d'infobulle au survol du produit.  
+InventoryModuleNotAvailable = Module inventaire non disponible
