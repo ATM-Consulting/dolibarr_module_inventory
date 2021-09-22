@@ -1099,8 +1099,10 @@ function _productGetNomUrl($product) {
 	global $conf;
 	if ($conf->global->INVENTORY_PERF_TWEAKS) {
 		return '<a href="' . DOL_URL_ROOT.'/product/card.php?id='.$product->id . '">' . $product->ref . '</a>';
-	} else {
+	} else if(is_callable(array($product,'getNomUrl'))){
 		return $product->getNomUrl(1);
+	}else{
+		return 'error';
 	}
 }
 
