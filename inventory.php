@@ -485,7 +485,7 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
     ?>
     <script type="text/javascript">
         $(document).ready(function(){
-            $('select[name*="fk_category"]').attr("multiple", 'multiple').select2().val('').change();//Pour vider le multiselect car select_all_categories est ...
+            $('select[name*="fk_category"]').attr("multiple", 'multiple').select2({width : 'resolve'}).val('').change();//Pour vider le multiselect car select_all_categories est ...
         });
     </script>
     <?php
