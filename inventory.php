@@ -108,6 +108,7 @@ function _action()
 			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)';
 			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)';
 			$sql.= ' WHERE sm.fk_entrepot IN ('.implode(', ', $TChildWarehouses).')';
+			$sql.= ' AND sm.datem < "'.date('Y-m-d 23:59:59', $inventory->date_inventory).'"';
 			if (is_array($fk_category) && !empty($fk_category)) $sql.= ' AND cp.fk_categorie IN ('.implode(',',$fk_category).')';
 			if ($fk_supplier > 0) $sql.= ' AND pfp.fk_soc = '.$fk_supplier;
 
