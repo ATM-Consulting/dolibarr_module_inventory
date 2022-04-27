@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ## Version 1.11
 
+- FIX : DA021763 - Prise en compte de la date d'inventaire pour le caulcul des inventaires *2022-04-26* - 1.11.7
 - FIX : Bug affichage du select -Choix du filtre de catégorie- dans un nouvel inventaire *2022-01-11* - 1.11.6
 - FIX : Fatal error and return value for save method *2021-09-22* - 1.11.5
 - FIX : V13 Compatibility no token renewal *2021-05-07* - 1.11.4
